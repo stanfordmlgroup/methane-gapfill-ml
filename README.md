@@ -15,6 +15,12 @@ git clone git@github.com:stanfordmlgroup/methane-gapfill-ml.git
 conda env create -f environment.yml
 ```
 
+3. Activate the virtual environment:
+
+```Shell
+source activate ch4-gap-ml
+```
+
 ## Usage 
 Prepare data in a CSV and include the following headers:
 - `TIMESTAMP_END`: Format YYYYMMDDHHmm (e.g. 201312060030)
