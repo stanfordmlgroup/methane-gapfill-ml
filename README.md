@@ -65,6 +65,12 @@ python main.py run_all
 
 Run `python main.py {preprocess,train,test,gapfill} --help` for descriptions of all of the command-line arguments.
 
+Example commands using the sample data in the repository:
+```Shell
+python main.py preprocess --sites NZKop --eval_frac 0.1 --n_train 10
+python main.py train --sites NZKop --models [lasso,rf] --predictors_path train/predictors.txt
+```
+
 ## Contributions
 This tool was developed by Jeremy Irvin, Fred Lu, Vincent Liu, and Sharon Zhou.
 
