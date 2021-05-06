@@ -9,9 +9,6 @@ def load_raw_data(site_data_path):
     
     expected_columns = [
         "TIMESTAMP_END",
-        # "Year",
-        # "DOY",
-        # "Hour",
         "FCH4"
     ]
     for expected_column in expected_columns:
