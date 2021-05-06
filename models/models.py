@@ -61,12 +61,12 @@ class RandomForest(BaseModel):
         super().__init__(**kwargs)
         self.model = RandomForestRegressor(n_jobs=-1)
         self.param_dist = {
-            # "n_estimators": np.linspace(start=50, stop=500, num=10).astype(int),
-            # "max_features": ['auto', 'sqrt'],
-            # "max_depth": list(np.linspace(10, 110, num=11).astype(int)) + [None],
-            # "min_samples_split": [2, 5, 10],
-            # "min_samples_leaf": [1, 2, 4],
-            # "bootstrap": [True, False]
+            "n_estimators": np.linspace(start=50, stop=500, num=10).astype(int),
+            "max_features": ['auto', 'sqrt'],
+            "max_depth": list(np.linspace(10, 110, num=11).astype(int)) + [None],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 2, 4],
+            "bootstrap": [True, False]
         }
         self.scaler = None
 
