@@ -1,4 +1,6 @@
+import numpy as np
 import pickle as pkl
+from sklearn.impute import SimpleImputer
 from sklearn.model_selection import RandomizedSearchCV
 
 from metrics import metric_dict
@@ -13,7 +15,12 @@ class BaseModel(object):
 
     def fit(self, X, y):
         """Train on a training set and select optimal hyperparameters."""
-        # TODO: Impute missing predictors if necessary and set imputer here.
+        if X.isna().any():
+            self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+            X.loc[:, :] = self.imputer.fit_transform(X)
+        else:
+            self.imputer = None
+
         if self.scaler is not None:
             X.loc[:, :] = self.scaler.fit_transform(X)
         random_search = RandomizedSearchCV(
@@ -30,7 +37,8 @@ class BaseModel(object):
         self.predictors = X.columns.tolist()
 
     def predict(self, X):
-        # TODO: Impute missing predictors with self.imputer if necessary.
+        if self.imputer is not None:
+            X.loc[:, :] = self.imputer.transform(X)
         if self.scaler is not None:
             X.loc[:, :] = self.scaler.transform(X)
         return self.model.predict(X)
