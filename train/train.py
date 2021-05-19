@@ -11,7 +11,7 @@ def train(
         sites,
         models,
         predictors=None,
-        predictors_path=None,
+        predictors_paths=None,
         log_metrics=["pr2", "nmae"],
         inner_cv=5,
         n_iter=20,
@@ -21,17 +21,17 @@ def train(
     Train models using predictors on sitees.
 
     Args:
-        sites (str): Comma-separated list of site IDs to train on.
-                     Must match the name(s) of the data directories.
-        models (str): Comma-separated list of model names to train.
-                      Options: ['rf', 'ann', 'lasso', 'xgb']
-        predictors (str): A comma-separated list of predictors. Ignored if
-                          predictors_path is provided.
-        predictors_path (str): Path file(s) with predictor names.
-                               See train/predictors.txt for an example.
-                               If specifying multiple predictor sets, separate
-                               the paths with a comma.
-        log_metrics (list<str>): Validation metrics to log.
+        sites (Union[str, list<str>]): List of site IDs to train on.
+                                       Must match the name(s) of the data
+                                       directories.
+        models (Union[str, list<str>]): List of model names to train.
+                                        Options: ['rf', 'ann', 'lasso', 'xgb']
+        predictors (Union[str, list<str>]): List of predictors. Ignored if
+                                            predictors_path is provided.
+        predictors_paths (Union[str, list<str>]): Path file(s) with predictor
+                                                  names. See train/predictors.txt
+                                                  for an example.
+        log_metrics (Union[str, list<str>]): Validation metrics to log.
         inner_cv (int): Number of folds for k-fold cross validation in the
                         training set(s) for selecting model hyperparameters.
         n_iter (int): Number of parameter settings that are sampled in the
@@ -43,10 +43,14 @@ def train(
     for each {SiteID}, {model}, and {predictor} subset.
     """
     data_dir = Path("data/")
-    sites = sites.split(",")
+    if not isinstance(sites, list):
+        sites = sites.split(",")
+    if not isinstance(models, list):
+        models = models.split(",")
 
-    if predictors_path is not None:
-        predictors_paths = predictors_path.split(",")
+    if predictors_paths is not None:
+        if not isinstance(predictors_paths, list):
+            predictors_paths = predictors_paths.split(",")
         predictor_subsets = {}
         for predictors_path in predictors_paths:
             predictors_path = Path(predictors_path)
@@ -54,9 +58,11 @@ def train(
                 predictor_subset = f.read().splitlines()
             predictor_subsets[predictors_path.stem] = predictor_subset
     elif predictors is not None:
-        predictor_subsets = {"predictors": predictors.split(",")}
+        if not isinstance(predictors, list):
+            predictors = predictors.split(",")
+        predictor_subsets = {"predictors": predictors}
     else:
-        raise ValueError("Must provide predictors or predictors_path.")
+        raise ValueError("Must provide predictors or predictors_paths.")
 
     for site in sites:
         # Ensure that preprocessing has been run on this site
