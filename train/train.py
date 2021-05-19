@@ -21,17 +21,16 @@ def train(
     Train models using predictors on sitees.
 
     Args:
-        sites (Union[str, list<str>]): List of site IDs to train on.
-                                       Must match the name(s) of the data
-                                       directories.
-        models (Union[str, list<str>]): List of model names to train.
-                                        Options: ['rf', 'ann', 'lasso', 'xgb']
-        predictors (Union[str, list<str>]): List of predictors. Ignored if
-                                            predictors_path is provided.
-        predictors_paths (Union[str, list<str>]): Path file(s) with predictor
-                                                  names. See train/predictors.txt
-                                                  for an example.
-        log_metrics (Union[str, list<str>]): Validation metrics to log.
+        sites (list<str>): Comma-separated list of site IDs to train on.
+                           Must match the name(s) of the data directories.
+        models (list<str>): Comma-separated list of model names to train.
+                            Options: ['rf', 'ann', 'lasso', 'xgb']
+        predictors (list<str>): Comma-separated list of predictors. Ignored if
+                                predictors_path is provided.
+        predictors_paths (list<str>): Comma-separated list path file(s) with
+                                      predictor names. See train/predictors.txt
+                                      for an example.
+        log_metrics (list<str>): Validation metrics to log.
         inner_cv (int): Number of folds for k-fold cross validation in the
                         training set(s) for selecting model hyperparameters.
         n_iter (int): Number of parameter settings that are sampled in the
@@ -43,13 +42,13 @@ def train(
     for each {SiteID}, {model}, and {predictor} subset.
     """
     data_dir = Path("data/")
-    if not isinstance(sites, list):
+    if isinstance(sites, str):
         sites = sites.split(",")
-    if not isinstance(models, list):
+    if isinstance(models, str):
         models = models.split(",")
 
     if predictors_paths is not None:
-        if not isinstance(predictors_paths, list):
+        if isinstance(predictors_paths, str):
             predictors_paths = predictors_paths.split(",")
         predictor_subsets = {}
         for predictors_path in predictors_paths:
@@ -58,7 +57,7 @@ def train(
                 predictor_subset = f.read().splitlines()
             predictor_subsets[predictors_path.stem] = predictor_subset
     elif predictors is not None:
-        if not isinstance(predictors, list):
+        if isinstance(predictors, str):
             predictors = predictors.split(",")
         predictor_subsets = {"predictors": predictors}
     else:
