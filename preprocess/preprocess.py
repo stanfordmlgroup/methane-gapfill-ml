@@ -95,7 +95,7 @@ def preprocess(
                 )
                 val_indices = np.isnan(val_flux) & ~trainval_set.FCH4.isna()
                 val_set = trainval_set[val_indices]
-                train_set = trainval_set[~val_indices]
+                train_set = trainval_set[~val_indices & ~trainval_set.FCH4.isna()]
                 train_valid_pairs.append((train_set, val_set))
 
         elif split_method == 'random':
@@ -120,6 +120,13 @@ def preprocess(
 
         else:
             raise ValueError(f'Splitting method {split_method} not supported.')
+
+        # Assert that the data is evenly split across the sets
+        for train_set, val_set in train_valid_pairs:
+            assert site_data.shape[0] == (
+                gap_set.shape[0] + test_set.shape[0] +
+                val_set.shape[0] + train_set.shape[0]
+            )
 
         # Write data splits to CSVs
         train_data_dir = site_data_dir / "training"
