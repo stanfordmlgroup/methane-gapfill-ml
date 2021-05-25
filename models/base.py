@@ -15,7 +15,7 @@ class BaseModel(object):
 
     def fit(self, X, y):
         """Train on a training set and select optimal hyperparameters."""
-        if X.isna().any():
+        if X.isna().any().any():
             self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
             X.loc[:, :] = self.imputer.fit_transform(X)
         else:
