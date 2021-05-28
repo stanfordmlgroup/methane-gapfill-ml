@@ -49,7 +49,7 @@ def train(
     for model in models:
         try:
             get_model_class(model)
-        except:
+        except Exception as e:
             raise ValueError(f"Model {model} not supported.")
 
     if predictors_paths is not None:
@@ -73,16 +73,16 @@ def train(
         site_data_dir = data_dir / site
         train_dir = site_data_dir / "training"
         if not train_dir.exists() or len(list(train_dir.iterdir())) < 1:
-            raise ValueError(f"You must run preprocessing on site {site}" + 
+            raise ValueError(f"You must run preprocessing on site {site}" +
                              "before training.")
-        
+
         # Load the training and validation sets
         train_sets = [
-            pd.read_csv(train_path) 
+            pd.read_csv(train_path)
             for train_path in sorted(train_dir.glob("train*.csv"))
         ]
         valid_sets = [
-            pd.read_csv(valid_path) 
+            pd.read_csv(valid_path)
             for valid_path in sorted(train_dir.glob("valid*.csv"))
         ]
 
@@ -98,7 +98,8 @@ def train(
             print(f"Training models for site={site} with " +
                   f"predictors={','.join(predictor_subset)}...")
             model_scores = defaultdict(lambda: defaultdict(list))
-            for i, (train_set, valid_set) in enumerate(zip(train_sets, valid_sets)):
+            for i, (train_set, valid_set) in enumerate(zip(train_sets,
+                                                           valid_sets)):
 
                 # TODO: Process special keyword predictors
 
@@ -109,7 +110,7 @@ def train(
 
                 for model in models:
                     model_dir = site_data_dir / model / predictor_subset_name
-                    model_dir.mkdir(exist_ok=True, parents=True)               
+                    model_dir.mkdir(exist_ok=True, parents=True)
                     model_path = model_dir / f"model{i+1}.pkl"
                     if model_path.exists() and not overwrite_existing_models:
                         with model_path.open("rb") as f:
@@ -118,7 +119,7 @@ def train(
                         ModelClass = get_model_class(model)
                         model_obj = ModelClass(cv=inner_cv, n_iter=n_iter)
                         model_obj.fit(X_train, y_train)
-                    
+
                     for metric in log_metrics:
                         score = model_obj.evaluate(X_valid, y_valid, metric)
                         model_scores[model][metric].append(score)
@@ -133,7 +134,7 @@ def train(
                 for metric, scores in metric_scores.items():
                     mean_score = np.mean(scores)
                     site_scores_mean[predictor_subset_name][model][metric] = mean_score
-        
+
         site_scores_df = pd.concat({
             predictor_subset_name: pd.DataFrame(model_scores)
             for predictor_subset_name, model_scores in site_scores_mean.items()
