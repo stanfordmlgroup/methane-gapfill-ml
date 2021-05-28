@@ -46,6 +46,11 @@ def train(
         sites = sites.split(",")
     if isinstance(models, str):
         models = models.split(",")
+    for model in models:
+        try:
+            get_model_class(model)
+        except:
+            raise ValueError(f"Model {model} not supported.")
 
     if predictors_paths is not None:
         if isinstance(predictors_paths, str):
