@@ -67,7 +67,7 @@ def train(
         # Ensure that preprocessing has been run on this site
         site_data_dir = data_dir / site
         train_dir = site_data_dir / "training"
-        if not train_dir.exists():
+        if not train_dir.exists() or len(list(train_dir.iterdir())) < 1:
             raise ValueError(f"You must run preprocessing on site {site}" + 
                              "before training.")
         
@@ -91,7 +91,7 @@ def train(
                                          "in the data.")
 
             print(f"Training models for site={site} with " +
-                  f"predictors={predictor_subset_name}...")
+                  f"predictors={','.join(predictor_subset)}...")
             model_scores = defaultdict(lambda: defaultdict(list))
             for i, (train_set, valid_set) in enumerate(zip(train_sets, valid_sets)):
 
