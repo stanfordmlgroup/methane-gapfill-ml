@@ -113,7 +113,7 @@ def train(
                     model_dir.mkdir(exist_ok=True, parents=True)
                     model_path = model_dir / f"model{i+1}.pkl"
                     if model_path.exists() and not overwrite_existing_models:
-                        print(f"Loading existing model from {model_path}")
+                        print(f"Loading existing model from {model_path}.")
                         with model_path.open("rb") as f:
                             model_obj = pkl.load(f)
                     else:
