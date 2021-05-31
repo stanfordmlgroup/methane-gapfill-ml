@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pandas as pd
 import pickle as pkl
@@ -41,6 +42,9 @@ def train(
     Saves trained models to data/{SiteID}/{model}/{predictor}/
     for each {SiteID}, {model}, and {predictor} subset.
     """
+    args = locals()
+    del args['sites']
+    del args['overwrite_existing_models']
     data_dir = Path("data/")
     if isinstance(sites, str):
         sites = sites.split(",")
@@ -86,6 +90,32 @@ def train(
             for valid_path in sorted(train_dir.glob("valid*.csv"))
         ]
 
+        results_dir = site_data_dir / "results"
+        results_dir.mkdir(exist_ok=True)
+
+        args_path = results_dir / "args.json"
+        if args_path.exists():
+            # If overwrite_existing_models is True, can proceed.
+            # Otherwise, check saved args.
+            if not overwrite_existing_models:
+                with args_path.open() as f:
+                    prev_args = json.load(f)
+                # If args don't match, raise a ValueError and ask that
+                # the user specifies overwrite_existing_models=True.
+                for key, value in args.items():
+                    if key == 'sites':
+                        continue
+                    prev_value = prev_args[key]
+                    if prev_value != value:
+                        raise ValueError(
+                            f"You supplied {key}={value} but the saved model" +
+                            f" used {key}={prev_value}. Please specify "
+                            "overwrite_existing_models=True to overwrite."
+                        )
+        else:
+            with args_path.open('w') as f:
+                json.dump(args, f)
+
         site_scores = {}
         for predictor_subset_name, predictor_subset in predictor_subsets.items():
             # Check if predictor exists in the data
@@ -109,7 +139,7 @@ def train(
                 y_valid = valid_set["FCH4"]
 
                 for model in models:
-                    model_dir = site_data_dir / model / predictor_subset_name
+                    model_dir = results_dir / model / predictor_subset_name
                     model_dir.mkdir(exist_ok=True, parents=True)
                     model_path = model_dir / f"model{i+1}.pkl"
                     if model_path.exists() and not overwrite_existing_models:
@@ -145,9 +175,7 @@ def train(
         )
 
         # Write the scores to file
-        site_scores_dir = site_data_dir / "results"
-        site_scores_dir.mkdir(exist_ok=True)
-        site_scores_path = site_scores_dir / "valid.csv"
+        site_scores_path = results_dir / "valid.csv"
         print(f"Done training models for site={site}.")
         print(f"Writing validation results to {site_scores_path}")
         site_scores_df.to_csv(site_scores_path)
