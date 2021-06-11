@@ -115,7 +115,7 @@ def train(
 
             if 'all' in predictor_subset:
                 predictor_subset = add_all_predictors(
-                    predictor_subset, train_set.columns
+                    predictor_subset, train_sets[0].columns
                 )
 
             use_temporal = 'temporal' in predictor_subset
