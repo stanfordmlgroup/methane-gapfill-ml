@@ -5,6 +5,7 @@ import pickle as pkl
 from pathlib import Path
 from collections import defaultdict
 
+from predictors import *
 from models import get_model_class
 
 
@@ -28,9 +29,13 @@ def train(
                             Options: ['rf', 'ann', 'lasso', 'xgb']
         predictors (list<str>): Comma-separated list of predictors. Ignored if
                                 predictors_path is provided.
+                                Certain keyword predictors are used to denote
+                                specific sets of predictors:
+                                ['temporal', 'all']
         predictors_paths (list<str>): Comma-separated list path file(s) with
-                                      predictor names. See train/predictors.txt
-                                      for an example.
+                                      predictor names. See
+                                      predictors/metereological.txt for an
+                                      example.
         log_metrics (list<str>): Validation metrics to log.
         inner_cv (int): Number of folds for k-fold cross validation in the
                         training set(s) for selecting model hyperparameters.
@@ -56,21 +61,7 @@ def train(
         except Exception as e:
             raise ValueError(f"Model {model} not supported.")
 
-    if predictors_paths is not None:
-        if isinstance(predictors_paths, str):
-            predictors_paths = predictors_paths.split(",")
-        predictor_subsets = {}
-        for predictors_path in predictors_paths:
-            predictors_path = Path(predictors_path)
-            with predictors_path.open() as f:
-                predictor_subset = f.read().splitlines()
-            predictor_subsets[predictors_path.stem] = predictor_subset
-    elif predictors is not None:
-        if isinstance(predictors, str):
-            predictors = predictors.split(",")
-        predictor_subsets = {"predictors": predictors}
-    else:
-        raise ValueError("Must provide predictors or predictors_paths.")
+    predictor_subsets = parse_predictors(predictors_paths, predictors)
 
     for site in sites:
         # Ensure that preprocessing has been run on this site
@@ -120,23 +111,44 @@ def train(
         for predictor_subset_name, predictor_subset in predictor_subsets.items():
             # Check if predictor exists in the data
             for data_set in train_sets + valid_sets:
-                for predictor in predictor_subset:
-                    if predictor not in data_set.columns:
-                        raise ValueError(f"Predictor {predictor} not found " +
-                                         "in the data.")
+                check_predictors_present(data_set, predictor_subset)
+
+            if 'all' in predictor_subset:
+                predictor_subset = add_all_predictors(
+                    predictor_subset, train_set.columns
+                )
+
+            use_temporal = 'temporal' in predictor_subset
 
             print(f"Training models for site={site} with " +
                   f"predictors={','.join(predictor_subset)}...")
+            if use_temporal:
+                predictor_subset.remove('temporal')
+
             model_scores = defaultdict(lambda: defaultdict(list))
             for i, (train_set, valid_set) in enumerate(zip(train_sets,
                                                            valid_sets)):
 
-                # TODO: Process special keyword predictors
+                if use_temporal:
+                    X_temporal_train = get_temporal_predictors(
+                        train_set['TIMESTAMP_END']
+                    )
+                    X_temporal_valid = get_temporal_predictors(
+                        valid_set['TIMESTAMP_END']
+                    )
 
                 X_train = train_set[predictor_subset].copy()
                 y_train = train_set["FCH4"]
                 X_valid = valid_set[predictor_subset].copy()
                 y_valid = valid_set["FCH4"]
+
+                if use_temporal:
+                    X_train = pd.concat([X_train, X_temporal_train], axis=1)
+                    X_valid = pd.concat([X_valid, X_temporal_valid], axis=1)
+
+                if 'WD' in predictor_subset:
+                    X_train = process_wind_direction_predictor(X_train)
+                    X_valid = process_wind_direction_predictor(X_valid)
 
                 for model in models:
                     model_dir = results_dir / model / predictor_subset_name
