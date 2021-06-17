@@ -13,13 +13,17 @@ class BaseModel(object):
         self.cv = cv
         self.n_iter = n_iter
 
-    def fit(self, X, y):
-        """Train on a training set and select optimal hyperparameters."""
+    def impute(self, X):
         if X.isna().any().any():
             self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
             X.loc[:, :] = self.imputer.fit_transform(X)
         else:
             self.imputer = None
+        return X
+
+    def fit(self, X, y):
+        """Train on a training set and select optimal hyperparameters."""
+        X = self.impute(X)
 
         if self.scaler is not None:
             X.loc[:, :] = self.scaler.fit_transform(X)
@@ -44,7 +48,7 @@ class BaseModel(object):
         return self.model.predict(X)
 
     def evaluate(self, X, y, metric):
-        y_hat = self.model.predict(X)
+        y_hat = self.predict(X)
         if metric not in metric_dict:
             raise ValueError(f"Metric {metric} not supported.")
         metric_fn = metric_dict[metric]

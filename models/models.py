@@ -22,6 +22,8 @@ class Lasso(BaseModel):
         self.scaler = StandardScaler()
 
     def fit(self, X, y):
+        X = self.impute(X)
+
         X.loc[:, :] = self.scaler.fit_transform(X)
 
         self.model.fit(X, y)
