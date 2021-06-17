@@ -73,7 +73,7 @@ python main.py train --sites NZKop --models [lasso,rf] --predictors_paths train/
 When specifying multiple values for a paramter, you can either use a comma-separated string or list syntax like in the above command.
 
 ## Contributions
-This tool was developed by Jeremy Irvin, Fred Lu, Vincent Liu, and Sharon Zhou.
+This tool was developed by Jeremy Irvin, Yulun Zhou, Fred Lu, Vincent Liu, and Sharon Zhou.
 
 ## Citing
 If you're using this codebase, please cite [this paper](https://add/link/once/published):

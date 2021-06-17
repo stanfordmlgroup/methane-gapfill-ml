@@ -5,11 +5,11 @@ from train import train
 from test import test
 from gapfill import gapfill
 
-def run_all(sites, models, predictors, **kwargs):
-    preprocess(sites, **kwargs)
-    train(sites, models, predictors, **kwargs)
-    test(sites, models, predictors, **kwargs)
-    gapfill(sites, models, predictors, **kwargs)
+def run_all(**kwargs):
+    preprocess(**kwargs)
+    train(**kwargs)
+    test(**kwargs)
+    gapfill(**kwargs)
 
 
 if __name__ == "__main__":

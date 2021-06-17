@@ -134,7 +134,7 @@ def preprocess(
         for i, (train_set, valid_set) in enumerate(train_valid_pairs):
             train_set.to_csv(train_data_dir / f"train{i+1}.csv", index=False)
             valid_set.to_csv(train_data_dir / f"valid{i+1}.csv", index=False)
-        test_set.to_csv(train_data_dir / "test.csv", index=False)
+        test_set.to_csv(site_data_dir / "test.csv", index=False)
         gap_set.to_csv(site_data_dir / "gap.csv", index=False)
 
         # Save arguments to site_data_dir
