@@ -8,7 +8,6 @@ from scipy.stats import pearsonr
 
 
 def pearson_r_squared(truth, prediction):
-    """ pearson r^2 score on truth and prediction arrays """
     return pearsonr(truth, prediction)[0] ** 2
 
 
