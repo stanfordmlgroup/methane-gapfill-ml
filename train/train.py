@@ -25,7 +25,7 @@ def train(
         overwrite_existing_models=False
 ):
     """
-    Train models using predictors on sitees.
+    Train models using predictors on sites.
 
     Args:
         sites (list<str>): Comma-separated list of site IDs to train on.
