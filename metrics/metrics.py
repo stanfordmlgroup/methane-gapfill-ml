@@ -21,10 +21,15 @@ def normalized_mean_absolute_error(truth, prediction):
             reference_standard_dev(truth, prediction))
 
 
+def bias(truth, prediction):
+    return (prediction - truth).mean()
+
+
 metric_dict = {
     "mse": mean_squared_error,
     "mae": mean_absolute_error,
     "nmae": normalized_mean_absolute_error,
     "r2": r2_score,
-    "pr2": pearson_r_squared
+    "pr2": pearson_r_squared,
+    "bias": bias
 }

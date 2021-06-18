@@ -3,11 +3,18 @@ import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 
+from models import EnsembleModel
+from metrics import metric_dict
+
 
 def test(
-        model_dirs,
+        model_dirs=None,
+        sites=None,
+        models=None,
+        predictors=None,
+        predictor_paths=None,
         split='test',
-        eval_metrics=["pr2", "nmae"]
+        eval_metrics=metric_dict.keys()
 ):
     """
     Args:
@@ -23,6 +30,12 @@ def test(
     """
     if isinstance(model_dirs, str):
         model_dirs = model_dirs.split(",")
+    # # TODO: Add logic for when user passes in sites/models/predictors instead of paths
+    # # (just triple for loop looking for models, print when didn't find one)
+    # if model_dirs is None:
+    #     model_dirs = []
+    #     for model
+
     splits = ['train', 'valid', 'test']
     if split not in splits:
         raise ValueError(f"Got split={split} but must be one of " +
@@ -45,9 +58,17 @@ def test(
         model = model_dir.parent.name
 
         if split == 'test':
-            eval_paths = [site_data_dir / 'test.csv']
-            # TODO: Run ensemble model
-        
+            eval_df = pd.read_csv(site_data_dir / 'test.csv')
+            model_obj = EnsembleModel(model_dir)
+            scores = {}
+            for eval_metric in eval_metrics:
+                score = model_obj.evaluate(eval_df, eval_df['FCH4'], eval_metric)
+                scores[eval_metric] = [score]
+
+            scores['model'] = model
+            scores['predictors'] = predictor_subset
+            eval_scores.append(pd.DataFrame(scores))
+
         else:
             # Run each model on the corresponding data split
             site_training_data_dir = site_data_dir / 'training'
