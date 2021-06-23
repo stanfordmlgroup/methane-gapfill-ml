@@ -100,7 +100,7 @@ def test(
             y_hat = model_obj.predict(eval_df)
             y = eval_df['FCH4']
             pred_df = pd.DataFrame({"groundtruth": y, "prediction": y_hat})
-            pred_df.to_csv(model_dir / "predictions.csv", index=False)
+            pred_df.to_csv(model_dir / f"{split}_predictions.csv", index=False)
             scores = {
                 eval_metric: [metric_dict[eval_metric](y, y_hat)]
                 for eval_metric in eval_metrics
@@ -137,7 +137,7 @@ def test(
                 y_hat = model_obj.predict(eval_df)
                 y = eval_df['FCH4']
                 pred_df = pd.DataFrame({"groundtruth": y, "prediction": y_hat})
-                pred_df.to_csv(model_dir / "predictions.csv", index=False)
+                pred_df.to_csv(model_dir / f"{split}_predictions.csv", index=False)
                 scores = {
                     eval_metric: [metric_dict[eval_metric](y, y_hat)]
                     for eval_metric in eval_metrics
