@@ -18,6 +18,7 @@ class BaseModel(object):
 
     def preprocess(self, X):
         """Prepare X to be input to the model."""
+        X = X.copy()
         predictor_subset = self.predictor_subset.copy()
         if 'all' in predictor_subset:
             predictor_subset = add_all_predictors(predictor_subset, X.columns)
