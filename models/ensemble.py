@@ -1,6 +1,6 @@
 import numpy as np
 import pickle as pkl
-from collections import Counter
+from collections import defaultdict
 
 from metrics import metric_dict
 
@@ -26,18 +26,29 @@ class EnsembleModel(object):
                 with open(model_path, 'rb') as f:
                     model = pkl.load(f)
                 self.split2model[model_path.stem] = model
+            # Assume every model in the ensemble has the same set of predictors
+            self._predictors = model.predictors
+
+    @property
+    def predictors(self):
+        if self.use_iterator:
+            for _, model in self.split2model.items():
+                return model.predictors
+        else:
+            return self._predictors
 
     @property
     def feature_importances(self):
         n_models = len(self.split2model)
-        feature_importances = sum(
-            [Counter(model.feature_importances)
-             for _, model in self.split2model.items()],
-            Counter()
-        )
+        feature_importances = defaultdict(float)
+        for _, model in self.split2model.items():
+            model_feature_importances = model.feature_importances
+            for var, value in model_feature_importances.items():
+                feature_importances[var] += value
+
         for var in feature_importances:
             feature_importances[var] /= n_models
-        return feature_importances
+        return dict(feature_importances)
 
     def predict(self, X):
         model_preds = []

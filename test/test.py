@@ -23,9 +23,9 @@ def test(
     Args:
         model_dirs (list<str>): Comma-separated list of paths to model
                                 directories with checkpoints. These must all
-                                be from the same site. sites, models, predictors,
-                                and predictors_paths will be ignored if this
-                                parameter is supplied to the function.
+                                be from the same site. sites, models,
+                                predictors, and predictors_paths are ignored
+                                if this parameter is supplied to the function.
         sites (list<str>): Comma-separated list of site IDs to train on.
                            Must match the name(s) of the data directories.
         models (list<str>): Comma-separated list of model names to train.
@@ -39,7 +39,8 @@ def test(
                                       containing predictor names. See
                                       predictors/metereological.txt for an
                                       example.
-        split (str): Which split to test on. Options: ['train', 'valid', 'test']
+        split (str): Which split to test on.
+                     Options: ['train', 'valid', 'test']
         eval_metrics (list<str>): Metrics to use to evaluate the model(s) on
                                   the split.
 
@@ -54,22 +55,23 @@ def test(
         models = models.split(",")
 
     predictor_subsets = parse_predictors(predictors_paths, predictors)
-    
+
     if model_dirs is None:
         model_dirs = []
         for site in sites:
             save_dir = data_dir / site / "models"
             for model in models:
-                for predictor_subset in predictor_subsets:
+                for predictor_subset, predictors in predictor_subsets.items():
                     model_dir = save_dir / model / predictor_subset
                     if len(list(model_dir.glob("*.pkl"))) == 0:
-                        raise ValueError("No models trained for " + 
-                                         f"site={site}, " +
-                                         f"model={model}, " +
-                                         f"predictors={predictor_subset}, "
-                                         )
+                        raise ValueError(
+                            "No models trained for " +
+                            f"site={site}, " +
+                            f"model={model}, " +
+                            f"predictor_subset={predictor_subset}, " +
+                            f"predictors={predictors}"
+                        )
                     model_dirs.append(model_dir)
-
 
     splits = ['train', 'valid', 'test']
     if split not in splits:
@@ -95,13 +97,23 @@ def test(
         if split == 'test':
             eval_df = pd.read_csv(site_data_dir / 'test.csv')
             model_obj = EnsembleModel(model_dir)
-            scores = {}
-            for eval_metric in eval_metrics:
-                score = model_obj.evaluate(eval_df, eval_df['FCH4'], eval_metric)
-                scores[eval_metric] = [score]
+            y_hat = model_obj.predict(eval_df)
+            y = eval_df['FCH4']
+            pred_df = pd.DataFrame({"groundtruth": y, "prediction": y_hat})
+            pred_df.to_csv(model_dir / "predictions.csv", index=False)
+            scores = {
+                eval_metric: [metric_dict[eval_metric](y, y_hat)]
+                for eval_metric in eval_metrics
+            }
 
             scores['model'] = model
-            scores['predictors'] = predictor_subset
+            scores['predictors_subset'] = predictor_subset
+            predictors = [
+                predictor
+                for predictor in model_obj.predictors
+                if predictor != "intercept"
+            ]
+            scores['predictors'] = ";".join(predictors)
             eval_scores.append(pd.DataFrame(scores))
 
         else:
@@ -113,24 +125,43 @@ def test(
             for i in range(n_train):
                 eval_path = site_training_data_dir / f'{split}{i+1}.csv'
                 eval_df = pd.read_csv(eval_path)
-                
+
                 model_path = model_dir / f"model{i+1}.pkl"
                 if not model_path.exists():
-                    raise ValueError(f"Model path {model_path} does not exist.")
+                    raise ValueError(
+                        f"Model path {model_path} does not exist."
+                    )
                 with model_path.open('rb') as f:
                     model_obj = pickle.load(f)
-                
-                for eval_metric in eval_metrics:
-                    score = model_obj.evaluate(eval_df, eval_df['FCH4'], eval_metric)
-                    scores[eval_metric].append(score)
-            
+
+                y_hat = model_obj.predict(eval_df)
+                y = eval_df['FCH4']
+                pred_df = pd.DataFrame({"groundtruth": y, "prediction": y_hat})
+                pred_df.to_csv(model_dir / "predictions.csv", index=False)
+                scores = {
+                    eval_metric: [metric_dict[eval_metric](y, y_hat)]
+                    for eval_metric in eval_metrics
+                }
+
             scores_df = pd.DataFrame(scores)
             mean_scores = scores_df.mean().to_frame().T
             mean_scores['model'] = model
-            mean_scores['predictors'] = predictor_subset
+            mean_scores['predictor_subset'] = predictor_subset
+            predictors = [
+                predictor
+                for predictor in model_obj.predictors
+                if predictor != "intercept"
+            ]
+            mean_scores['predictors'] = ";".join(predictors)
             eval_scores.append(mean_scores)
-    
+
+        eval_scores_df = pd.concat(eval_scores)
+        eval_scores_path = site_data_dir / f'{split}_results.csv'
+        print(f"Adding ongoing {split} metrics for {model_dir} " +
+              f"to {eval_scores_path}")
+        eval_scores_df.to_csv(eval_scores_path, index=False)
+
     eval_scores_df = pd.concat(eval_scores)
     eval_scores_path = site_data_dir / f'{split}_results.csv'
-    print(f"Writing {split} metrics to {eval_scores_path}")
+    print(f"Writing final {split} metrics to {eval_scores_path}")
     eval_scores_df.to_csv(eval_scores_path, index=False)
