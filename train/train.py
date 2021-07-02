@@ -2,11 +2,16 @@ import json
 import numpy as np
 import pandas as pd
 import pickle as pkl
+from tqdm import tqdm
 from pathlib import Path
 from collections import defaultdict
 
-from predictors import *
 from models import get_model_class
+from predictors import (
+    parse_predictors,
+    check_predictors_present,
+    add_all_predictors
+)
 
 
 def train(
@@ -14,13 +19,13 @@ def train(
         models,
         predictors=None,
         predictors_paths=None,
-        log_metrics=["pr2", "nmae"],
         inner_cv=5,
         n_iter=20,
+        log_metrics=["pr2", "nmae"],
         overwrite_existing_models=False
 ):
     """
-    Train models using predictors on sitees.
+    Train models using predictors on sites.
 
     Args:
         sites (list<str>): Comma-separated list of site IDs to train on.
@@ -32,24 +37,24 @@ def train(
                                 Certain keyword predictors are used to denote
                                 specific sets of predictors:
                                 ['temporal', 'all']
-        predictors_paths (list<str>): Comma-separated list path file(s) with
-                                      predictor names. See
+        predictors_paths (list<str>): Comma-separated list of paths to files
+                                      containing predictor names. See
                                       predictors/metereological.txt for an
                                       example.
-        log_metrics (list<str>): Validation metrics to log.
         inner_cv (int): Number of folds for k-fold cross validation in the
                         training set(s) for selecting model hyperparameters.
         n_iter (int): Number of parameter settings that are sampled in the
                       inner cross validation.
+        log_metrics (list<str>): Validation metrics to log.
         overwrite_existing_models (bool): Whether to overwrite models if they
                                           already exist.
 
     Saves trained models to data/{SiteID}/{model}/{predictor}/
     for each {SiteID}, {model}, and {predictor} subset.
     """
+    general_args = ['sites', 'models', 'predictors', 'predictors_paths',
+                    'overwrite_existing_models']
     args = locals()
-    del args['sites']
-    del args['overwrite_existing_models']
     data_dir = Path("data/")
     if isinstance(sites, str):
         sites = sites.split(",")
@@ -72,122 +77,86 @@ def train(
                              "before training.")
 
         # Load the training and validation sets
+        n_train = len(list(train_dir.glob("train*.csv")))
         train_sets = [
-            pd.read_csv(train_path)
-            for train_path in sorted(train_dir.glob("train*.csv"))
+            pd.read_csv(train_dir / f"train{i+1}.csv")
+            for i in range(n_train)
         ]
         valid_sets = [
-            pd.read_csv(valid_path)
-            for valid_path in sorted(train_dir.glob("valid*.csv"))
+            pd.read_csv(train_dir / f"valid{i+1}.csv")
+            for i in range(n_train)
         ]
 
-        results_dir = site_data_dir / "results"
-        results_dir.mkdir(exist_ok=True)
+        save_dir = site_data_dir / "models"
+        save_dir.mkdir(exist_ok=True)
 
-        args_path = results_dir / "args.json"
-        if args_path.exists():
-            # If overwrite_existing_models is True, can proceed.
-            # Otherwise, check saved args.
-            if not overwrite_existing_models:
-                with args_path.open() as f:
-                    prev_args = json.load(f)
-                # If args don't match, raise a ValueError and ask that
-                # the user specifies overwrite_existing_models=True.
-                for key, value in args.items():
-                    if key == 'sites':
-                        continue
-                    prev_value = prev_args[key]
-                    if prev_value != value:
-                        raise ValueError(
-                            f"You supplied {key}={value} but the saved model" +
-                            f" used {key}={prev_value}. Please specify "
-                            "overwrite_existing_models=True to overwrite."
-                        )
-        else:
-            with args_path.open('w') as f:
-                json.dump(args, f)
+        for model in models:
+            ModelClass = get_model_class(model)
+            for predictor_subset_name, predictor_subset in predictor_subsets.items():
+                # Check if predictor exists in the data
+                for data_set in train_sets + valid_sets:
+                    check_predictors_present(data_set, predictor_subset)
 
-        site_scores = {}
-        for predictor_subset_name, predictor_subset in predictor_subsets.items():
-            # Check if predictor exists in the data
-            for data_set in train_sets + valid_sets:
-                check_predictors_present(data_set, predictor_subset)
+                model_dir = save_dir / model / predictor_subset_name
+                model_dir.mkdir(exist_ok=True, parents=True)
+                args_path = model_dir / "args.json"
+                if (
+                        len(list(model_dir.glob("*.pkl"))) > 0
+                        and not overwrite_existing_models
+                ):
+                    with args_path.open() as f:
+                        prev_args = json.load(f)
+                    # If args don't match, raise a ValueError and ask that
+                    # the user specifies overwrite_existing_models=True.
+                    for key, value in args.items():
+                        if key in general_args:
+                            continue
+                        prev_value = prev_args[key]
+                        if prev_value != value:
+                            raise ValueError(
+                                f"You supplied {key}={value} but the saved model" +
+                                f" used {key}={prev_value}. Please specify "
+                                "overwrite_existing_models=True to overwrite."
+                            )
+                else:
+                    # Either model doesn't exist or
+                    # overwrite_existing_models=True
+                    # Write args to file
+                    with args_path.open('w') as f:
+                        json.dump(args, f)
 
-            if 'all' in predictor_subset:
-                predictor_subset = add_all_predictors(
-                    predictor_subset, train_sets[0].columns
-                )
-
-            use_temporal = 'temporal' in predictor_subset
-
-            print(f"Training models for site={site} with " +
-                  f"predictors={','.join(predictor_subset)}...")
-            if use_temporal:
-                predictor_subset.remove('temporal')
-
-            model_scores = defaultdict(lambda: defaultdict(list))
-            for i, (train_set, valid_set) in enumerate(zip(train_sets,
-                                                           valid_sets)):
-
-                if use_temporal:
-                    X_temporal_train = get_temporal_predictors(
-                        train_set['TIMESTAMP_END']
-                    )
-                    X_temporal_valid = get_temporal_predictors(
-                        valid_set['TIMESTAMP_END']
+                predictor_subset_print = predictor_subset
+                if 'all' in predictor_subset_print:
+                    predictor_subset_print = add_all_predictors(
+                        predictor_subset_print, train_sets[0].columns
                     )
 
-                X_train = train_set[predictor_subset].copy()
-                y_train = train_set["FCH4"]
-                X_valid = valid_set[predictor_subset].copy()
-                y_valid = valid_set["FCH4"]
+                print(f"Training model={model} for site={site} with " +
+                      f"predictors={','.join(predictor_subset_print)}...")
 
-                if use_temporal:
-                    X_train = pd.concat([X_train, X_temporal_train], axis=1)
-                    X_valid = pd.concat([X_valid, X_temporal_valid], axis=1)
+                scores = defaultdict(list)
+                for i, (train_set, valid_set) in tqdm(enumerate(zip(train_sets,
+                                                                    valid_sets)),
+                                                      total=len(train_sets)):
 
-                if 'WD' in predictor_subset:
-                    X_train = process_wind_direction_predictor(X_train)
-                    X_valid = process_wind_direction_predictor(X_valid)
-
-                for model in models:
-                    model_dir = results_dir / model / predictor_subset_name
-                    model_dir.mkdir(exist_ok=True, parents=True)
                     model_path = model_dir / f"model{i+1}.pkl"
                     if model_path.exists() and not overwrite_existing_models:
                         print(f"Loading existing model from {model_path}.")
                         with model_path.open("rb") as f:
                             model_obj = pkl.load(f)
                     else:
-                        ModelClass = get_model_class(model)
-                        model_obj = ModelClass(cv=inner_cv, n_iter=n_iter)
-                        model_obj.fit(X_train, y_train)
+                        model_obj = ModelClass(predictor_subset=predictor_subset,
+                                               cv=inner_cv, n_iter=n_iter)
+                        model_obj.fit(train_set, train_set['FCH4'])
 
                     for metric in log_metrics:
-                        score = model_obj.evaluate(X_valid, y_valid, metric)
-                        model_scores[model][metric].append(score)
+                        score = model_obj.evaluate(valid_set, valid_set['FCH4'], metric)
+                        scores[metric].append(score)
 
                     model_obj.save(model_path)
-            site_scores[predictor_subset_name] = model_scores
 
-        # Aggregate scores in a pandas dataframe
-        site_scores_mean = defaultdict(lambda: defaultdict(dict))
-        for predictor_subset_name, model_scores in site_scores.items():
-            for model, metric_scores in model_scores.items():
-                for metric, scores in metric_scores.items():
-                    mean_score = np.mean(scores)
-                    site_scores_mean[predictor_subset_name][model][metric] = mean_score
+                scores_df = pd.DataFrame(scores)
+                scores_path = model_dir / "training_results.csv"
+                scores_df.to_csv(scores_path, index=False)
 
-        site_scores_df = pd.concat({
-            predictor_subset_name: pd.DataFrame(model_scores)
-            for predictor_subset_name, model_scores in site_scores_mean.items()
-        }, axis=0)
-        site_scores_df.index = site_scores_df.index.rename(
-            ["predictors", "metric"]
-        )
-
-        # Write the scores to file
-        site_scores_path = results_dir / "valid.csv"
         print(f"Done training models for site={site}.")
-        print(f"Writing validation results to {site_scores_path}")
-        site_scores_df.to_csv(site_scores_path)

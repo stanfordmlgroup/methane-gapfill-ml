@@ -1,19 +1,47 @@
 import numpy as np
+import pandas as pd
 import pickle as pkl
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import RandomizedSearchCV
 
+from predictors import *
 from metrics import metric_dict
 
 
 class BaseModel(object):
     """Base class for all models."""
 
-    def __init__(self, cv=5, n_iter=20):
+    def __init__(self, predictor_subset, cv=5, n_iter=20):
+        self.predictor_subset = predictor_subset
         self.cv = cv
         self.n_iter = n_iter
 
+    def preprocess(self, X):
+        """Prepare X to be input to the model."""
+        X = X.copy()
+        predictor_subset = self.predictor_subset.copy()
+        if 'all' in predictor_subset:
+            predictor_subset = add_all_predictors(predictor_subset, X.columns)
+        
+        use_temporal = 'temporal' in predictor_subset
+        if use_temporal:
+            X_temporal = get_temporal_predictors(
+                X['TIMESTAMP_END']
+            )
+            predictor_subset.remove('temporal')
+
+        X = X[predictor_subset]
+
+        if use_temporal:
+            X = pd.concat([X, X_temporal], axis=1)
+
+        if 'WD' in predictor_subset:
+            X = process_wind_direction_predictor(X)
+
+        return X
+
     def impute(self, X):
+        """Impute missing predictors."""
         if X.isna().any().any():
             self.imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
             X.loc[:, :] = self.imputer.fit_transform(X)
@@ -23,6 +51,7 @@ class BaseModel(object):
 
     def fit(self, X, y):
         """Train on a training set and select optimal hyperparameters."""
+        X = self.preprocess(X)
         X = self.impute(X)
 
         if self.scaler is not None:
@@ -41,6 +70,7 @@ class BaseModel(object):
         self.predictors = X.columns.tolist()
 
     def predict(self, X):
+        X = self.preprocess(X)
         if self.imputer is not None:
             X.loc[:, :] = self.imputer.transform(X)
         if self.scaler is not None:
