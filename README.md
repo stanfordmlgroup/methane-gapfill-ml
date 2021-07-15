@@ -1,7 +1,12 @@
 # methane-gapfill-ml
-Python codebase for our paper "Gap-filling eddy covariance methane fluxes: Comparison of machine learning model predictions and uncertainties at FLUXNET-CH4 wetlands".
+Python codebase for [our manuscript](https://authors.elsevier.com/a/1dNxrcFXJZ1gC) "Gap-filling eddy covariance methane fluxes: Comparison of machine learning model predictions and uncertainties at FLUXNET-CH4 wetlands".
 
-Read more about our project [here](https://stanfordmlgroup.github.io/projects/gapfill/) and our manuscript [here](https://add/link/once/published).
+This codebase is a work in progress and will be updated periodically over the next few months:
+- [X] Data preprocessing
+- [X] Model training
+- [X] Model testing
+- [ ] Uncertainty estimation, calibration/sharpness, and post-processing calibration
+- [ ] Gap-filling a dataset with a trained model
 
 ## Prerequisites
 1. Clone this repository
@@ -53,7 +58,7 @@ Evaluate a trained model
 python main.py test
 ```
 
-Gapfill using a trained model
+Gapfill using a trained model (not yet implemented)
 ```Shell
 python main.py gapfill
 ```
@@ -76,4 +81,4 @@ When specifying multiple values for a paramter, you can either use a comma-separ
 This tool was developed by Jeremy Irvin, Yulun Zhou, Fred Lu, Vincent Liu, and Sharon Zhou.
 
 ## Citing
-If you're using this codebase, please cite [this paper](https://add/link/once/published):
+If you're using this codebase, please cite [this paper](https://authors.elsevier.com/a/1dNxrcFXJZ1gC):
