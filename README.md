@@ -1,7 +1,7 @@
 # methane-gapfill-ml
 Python codebase for [our manuscript](https://authors.elsevier.com/a/1dNxrcFXJZ1gC) "Gap-filling eddy covariance methane fluxes: Comparison of machine learning model predictions and uncertainties at FLUXNET-CH4 wetlands".
 
-This codebase is a work in progress and will be updated periodically over the next few months:
+This codebase is a work in progress and will be updated periodically over the next month:
 - [X] Data preprocessing
 - [X] Model training
 - [X] Model testing
@@ -75,7 +75,7 @@ Example commands using the sample data in the repository:
 python main.py preprocess --sites NZKop --eval_frac 0.1 --n_train 10
 python main.py train --sites NZKop --models [lasso,rf] --predictors_paths train/predictors.txt
 ```
-When specifying multiple values for a paramter, you can either use a comma-separated string or list syntax like in the above command.
+When specifying multiple values for a parameter, you can either use a comma-separated string or list syntax like in the above command.
 
 ## Contributions
 This tool was developed by Jeremy Irvin, Yulun Zhou, Fred Lu, Vincent Liu, and Sharon Zhou.
