@@ -80,5 +80,9 @@ When specifying multiple values for a parameter, you can either use a comma-sepa
 ## Contributions
 This tool was developed by Jeremy Irvin, Yulun Zhou, Fred Lu, Vincent Liu, and Sharon Zhou.
 
+## License
+
+[Apache License 2.0](https://github.com/stanfordmlgroup/methane-gapfill-ml/blob/master/LICENSE).
+
 ## Citing
 If you're using this codebase, please cite [this paper](https://authors.elsevier.com/a/1dNxrcFXJZ1gC).
