@@ -5,7 +5,7 @@ This codebase is a work in progress and will be updated periodically over the ne
 - [X] Data preprocessing
 - [X] Model training
 - [X] Model testing
-- [ ] Uncertainty estimation, calibration/sharpness, and post-processing calibration
+- [X] Uncertainty estimation, calibration/sharpness, and post-processing calibration
 - [ ] Gap-filling a dataset with a trained model
 
 ## Prerequisites
