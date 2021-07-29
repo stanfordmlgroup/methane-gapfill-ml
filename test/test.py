@@ -224,6 +224,6 @@ def test(
     eval_scores_df.to_csv(eval_scores_path, index=False)
 
     # Save args to eval_scores_dir
-    eval_args_path = eval_scores_dir / "args.json"
+    eval_args_path = eval_scores_dir / f"{split}_args.json"
     with eval_args_path.open('w') as f:
         json.dump(args, f)
