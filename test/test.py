@@ -89,9 +89,6 @@ def test(
         raise ValueError(f"Got split={split} but must be one of " +
                          f"{','.join(splits)}")
 
-    if split != 'test' and scale_uncertainty:
-        raise ValueError('Can only scale uncertainties on the test set.')
-
     eval_scores_dir = Path("results")
     eval_scores_dir.mkdir(exist_ok=True)
 
@@ -160,13 +157,18 @@ def test(
 
             scores['model'] = model
             scores['predictors_subset'] = predictor_subset
+            scores['site'] = site
             predictors = [
                 predictor
                 for predictor in model_obj.predictors
                 if predictor != "intercept"
             ]
             scores['predictors'] = ";".join(predictors)
-            eval_scores.append(pd.DataFrame(scores))
+            model_scores = pd.DataFrame(scores)
+            model_scores_path = model_dir / f"{split}_results.csv"
+            print(f"Writing {split} metrics for {model_dir} to {model_scores_path}")
+            model_scores.to_csv(model_scores_path, index=False)
+            eval_scores.append(model_scores)
 
         else:
             # Run each model on the corresponding data split
@@ -209,15 +211,16 @@ def test(
                 if predictor != "intercept"
             ]
             mean_scores['predictors'] = ";".join(predictors)
+            mean_scores_path = model_dir / f"{split}_results.csv"
+            print(f"Writing {split} metrics for {model_dir} to {mean_scores_path}")
+            mean_scores.to_csv(mean_scores_path, index=False)
             eval_scores.append(mean_scores)
 
         eval_scores_df = pd.concat(eval_scores)
-        print(f"Adding ongoing {split} metrics for {model_dir} " +
-              f"to {eval_scores_path}")
         eval_scores_df.to_csv(eval_scores_path, index=False)
 
     eval_scores_df = pd.concat(eval_scores)
-    print(f"Writing final {split} metrics to {eval_scores_path}")
+    print(f"Writing aggregated {split} metrics to {eval_scores_path}")
     eval_scores_df.to_csv(eval_scores_path, index=False)
 
     # Save args to eval_scores_dir
