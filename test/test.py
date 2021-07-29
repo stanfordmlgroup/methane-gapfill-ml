@@ -202,6 +202,7 @@ def test(
             mean_scores = scores_df.mean().to_frame().T
             mean_scores['model'] = model
             mean_scores['predictor_subset'] = predictor_subset
+            mean_scores['site'] = site
             predictors = [
                 predictor
                 for predictor in model_obj.predictors

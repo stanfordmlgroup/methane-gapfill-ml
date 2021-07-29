@@ -94,13 +94,12 @@ class EnsembleModel(object):
                 ensemble_scale = np.sqrt(ensemble_var)
             else:
                 ensemble_scale = np.sqrt(ensemble_var * uncertainty_scale)
-            ensemble_scale = np.log(ensemble_scale)
 
         else:
             raise ValueError(f"Distribution {distribution} not supported.")
 
         ensemble_dist = Dist(
-            np.array([ensemble_mean, ensemble_scale])
+            np.array([ensemble_mean, np.log(ensemble_scale)])
         )
 
         return [dist for dist in ensemble_dist]
