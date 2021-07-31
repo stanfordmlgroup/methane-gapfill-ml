@@ -1,10 +1,11 @@
+import json
 import pickle
 import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 
 from models import EnsembleModel
-from metrics import metric_dict
+from metrics import metric_dict, uncertainty_metric_dict
 from predictors import parse_predictors
 
 
@@ -15,7 +16,10 @@ def test(
         predictors=None,
         predictors_paths=None,
         split='test',
-        eval_metrics=metric_dict.keys()
+        distribution="laplace",
+        eval_metrics=list(metric_dict.keys()),
+        uncertainty_eval_metrics=list(uncertainty_metric_dict.keys()),
+        overwrite_results=False
 ):
     """
     Evaluate models.
@@ -41,11 +45,18 @@ def test(
                                       example.
         split (str): Which split to test on.
                      Options: ['train', 'valid', 'test']
+        distribution (str): Which distribution to use for prediction.
+                            Options: ['laplace', 'normal']
         eval_metrics (list<str>): Metrics to use to evaluate the model(s) on
                                   the split.
+        uncertainty_eval_metrics (list<str>): Metrics to use to evaluate the
+                                              uncertainty estimates of the
+                                              model(s) on the test set.
+        overwrite_results (bool): Whether to overwrite existing results.
 
-    Writes performance metrics to data/{site}/{split}_results/
+    Writes performance metrics to data/{site}/results/{split}
     """
+    args = locals()
     data_dir = Path("data/")
     if isinstance(model_dirs, str):
         model_dirs = model_dirs.split(",")
@@ -78,18 +89,17 @@ def test(
         raise ValueError(f"Got split={split} but must be one of " +
                          f"{','.join(splits)}")
 
-    site_data_dirs = set(
-        Path(model_dir).parent.parent.parent
-        for model_dir in model_dirs
-    )
-    if len(site_data_dirs) != 1:
-        raise ValueError('Model paths correspond to more than one site.')
+    eval_scores_dir = Path("results")
+    eval_scores_dir.mkdir(exist_ok=True)
 
-    site_data_dir = site_data_dirs.pop()
+    eval_scores_path = eval_scores_dir / f"{split}.csv"
+    if eval_scores_path.exists() and not overwrite_results:
+        raise ValueError(f"Results path at {eval_scores_path} already exists.")
 
     eval_scores = []
     for model_dir in model_dirs:
         model_dir = Path(model_dir)
+        site_data_dir = model_dir.parent.parent.parent
 
         predictor_subset = model_dir.name
         model = model_dir.parent.name
@@ -97,24 +107,68 @@ def test(
         if split == 'test':
             eval_df = pd.read_csv(site_data_dir / 'test.csv')
             model_obj = EnsembleModel(model_dir)
-            y_hat = model_obj.predict(eval_df)
             y = eval_df['FCH4']
-            pred_df = pd.DataFrame({"groundtruth": y, "prediction": y_hat})
+            y_hat_dist = model_obj.predict_dist(
+                eval_df,
+                distribution=distribution
+            )
+            y_hat = [dist.mean() for dist in y_hat_dist]
+            y_hat_scale = [dist.scale for dist in y_hat_dist]
+            uncertainty_scale = model_obj.uncertainty_scale(
+                y, y_hat_dist, distribution=distribution
+            )
+            y_hat_dist_scaled = model_obj.predict_dist(
+                eval_df,
+                distribution=distribution,
+                uncertainty_scale=uncertainty_scale
+            )
+            y_hat_scale_scaled = [dist.scale for dist in y_hat_dist_scaled]
+            pred_df = pd.DataFrame({
+                "groundtruth": y,
+                "prediction": y_hat,
+                "uncertainty_scale": y_hat_scale,
+                "scaled_uncertainty_scale": y_hat_scale_scaled
+            })
+
             pred_df.to_csv(model_dir / f"{split}_predictions.csv", index=False)
             scores = {
                 eval_metric: [metric_dict[eval_metric](y, y_hat)]
                 for eval_metric in eval_metrics
             }
+            uncertainty_scores = {
+                unc_eval_metric: [
+                    uncertainty_metric_dict[unc_eval_metric](y, y_hat_dist)
+                ]
+                for unc_eval_metric in uncertainty_eval_metrics
+            }
+            scaled_uncertainty_scores = {
+                f"{unc_eval_metric}_scaled": [
+                    uncertainty_metric_dict[unc_eval_metric](
+                        y, y_hat_dist_scaled
+                    )
+                ]
+                for unc_eval_metric in uncertainty_eval_metrics
+            }
+            scores = {
+                **scores,
+                **uncertainty_scores,
+                **scaled_uncertainty_scores
+            }
 
             scores['model'] = model
             scores['predictors_subset'] = predictor_subset
+            scores['site'] = site
             predictors = [
                 predictor
                 for predictor in model_obj.predictors
                 if predictor != "intercept"
             ]
             scores['predictors'] = ";".join(predictors)
-            eval_scores.append(pd.DataFrame(scores))
+            model_scores = pd.DataFrame(scores)
+            model_scores_path = model_dir / f"{split}_results.csv"
+            print(f"Writing {split} metrics for {model_dir} to {model_scores_path}")
+            model_scores.to_csv(model_scores_path, index=False)
+            eval_scores.append(model_scores)
 
         else:
             # Run each model on the corresponding data split
@@ -137,7 +191,10 @@ def test(
                 y_hat = model_obj.predict(eval_df)
                 y = eval_df['FCH4']
                 pred_df = pd.DataFrame({"groundtruth": y, "prediction": y_hat})
-                pred_df.to_csv(model_dir / f"{split}_predictions.csv", index=False)
+                pred_df.to_csv(
+                    model_dir / f"{split}{i+1}_predictions.csv",
+                    index=False
+                )
                 scores = {
                     eval_metric: [metric_dict[eval_metric](y, y_hat)]
                     for eval_metric in eval_metrics
@@ -147,21 +204,26 @@ def test(
             mean_scores = scores_df.mean().to_frame().T
             mean_scores['model'] = model
             mean_scores['predictor_subset'] = predictor_subset
+            mean_scores['site'] = site
             predictors = [
                 predictor
                 for predictor in model_obj.predictors
                 if predictor != "intercept"
             ]
             mean_scores['predictors'] = ";".join(predictors)
+            mean_scores_path = model_dir / f"{split}_results.csv"
+            print(f"Writing {split} metrics for {model_dir} to {mean_scores_path}")
+            mean_scores.to_csv(mean_scores_path, index=False)
             eval_scores.append(mean_scores)
 
         eval_scores_df = pd.concat(eval_scores)
-        eval_scores_path = site_data_dir / f'{split}_results.csv'
-        print(f"Adding ongoing {split} metrics for {model_dir} " +
-              f"to {eval_scores_path}")
         eval_scores_df.to_csv(eval_scores_path, index=False)
 
     eval_scores_df = pd.concat(eval_scores)
-    eval_scores_path = site_data_dir / f'{split}_results.csv'
-    print(f"Writing final {split} metrics to {eval_scores_path}")
+    print(f"Writing aggregated {split} metrics to {eval_scores_path}")
     eval_scores_df.to_csv(eval_scores_path, index=False)
+
+    # Save args to eval_scores_dir
+    eval_args_path = eval_scores_dir / f"{split}_args.json"
+    with eval_args_path.open('w') as f:
+        json.dump(args, f)

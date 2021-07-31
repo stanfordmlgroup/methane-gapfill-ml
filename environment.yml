@@ -8,5 +8,6 @@ dependencies:
   - scipy=1.5.0
   - scikit-learn=0.24.1
   - fire=0.4.0
+  - ngboost=0.3.11
   - tqdm=4.50.2
   - xgboost=1.4.0
