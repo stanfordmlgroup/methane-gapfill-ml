@@ -73,7 +73,7 @@ Run `python main.py {preprocess,train,test,gapfill} --help` for descriptions of 
 Example commands using the sample data in the repository:
 ```Shell
 python main.py preprocess --sites NZKop --eval_frac 0.1 --n_train 10
-python main.py train --sites NZKop --models [lasso,rf] --predictors_paths train/predictors.txt
+python main.py train --sites NZKop --models [lasso,rf] --predictors_paths predictors/meteorlogical.txt
 ```
 When specifying multiple values for a parameter, you can either use a comma-separated string or list syntax like in the above command.
 
