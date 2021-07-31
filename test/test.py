@@ -9,6 +9,36 @@ from metrics import metric_dict, uncertainty_metric_dict
 from predictors import parse_predictors
 
 
+def parse_model_dirs(model_dirs, sites, models, predictors,
+                     predictors_paths, data_dir):
+    if isinstance(model_dirs, str):
+        model_dirs = model_dirs.split(",")
+    if isinstance(sites, str):
+        sites = sites.split(",")
+    if isinstance(models, str):
+        models = models.split(",")
+
+    predictor_subsets = parse_predictors(predictors_paths, predictors)
+
+    if model_dirs is None:
+        model_dirs = []
+        for site in sites:
+            save_dir = data_dir / site / "models"
+            for model in models:
+                for predictor_subset, predictors in predictor_subsets.items():
+                    model_dir = save_dir / model / predictor_subset
+                    if len(list(model_dir.glob("*.pkl"))) == 0:
+                        raise ValueError(
+                            "No models trained for " +
+                            f"site={site}, " +
+                            f"model={model}, " +
+                            f"predictor_subset={predictor_subset}, " +
+                            f"predictors={predictors}"
+                        )
+                    model_dirs.append(model_dir)
+    return model_dirs
+
+
 def test(
         model_dirs=None,
         sites=None,
@@ -58,31 +88,14 @@ def test(
     """
     args = locals()
     data_dir = Path("data/")
-    if isinstance(model_dirs, str):
-        model_dirs = model_dirs.split(",")
-    if isinstance(sites, str):
-        sites = sites.split(",")
-    if isinstance(models, str):
-        models = models.split(",")
-
-    predictor_subsets = parse_predictors(predictors_paths, predictors)
-
-    if model_dirs is None:
-        model_dirs = []
-        for site in sites:
-            save_dir = data_dir / site / "models"
-            for model in models:
-                for predictor_subset, predictors in predictor_subsets.items():
-                    model_dir = save_dir / model / predictor_subset
-                    if len(list(model_dir.glob("*.pkl"))) == 0:
-                        raise ValueError(
-                            "No models trained for " +
-                            f"site={site}, " +
-                            f"model={model}, " +
-                            f"predictor_subset={predictor_subset}, " +
-                            f"predictors={predictors}"
-                        )
-                    model_dirs.append(model_dir)
+    model_dirs = parse_model_dirs(
+        model_dirs=model_dirs,
+        sites=sites,
+        models=models,
+        predictors=predictors,
+        predictors_paths=predictors_paths,
+        data_dir=data_dir
+    )
 
     splits = ['train', 'valid', 'test']
     if split not in splits:
@@ -103,6 +116,7 @@ def test(
 
         predictor_subset = model_dir.name
         model = model_dir.parent.name
+        site = site_data_dir.name
 
         if split == 'test':
             eval_df = pd.read_csv(site_data_dir / 'test.csv')
@@ -129,8 +143,11 @@ def test(
                 "uncertainty_scale": y_hat_scale,
                 "scaled_uncertainty_scale": y_hat_scale_scaled
             })
-
             pred_df.to_csv(model_dir / f"{split}_predictions.csv", index=False)
+            scale_path = model_dir / "scale.json"
+            with scale_path.open('w') as f:
+                json.dump(uncertainty_scale, f)
+
             scores = {
                 eval_metric: [metric_dict[eval_metric](y, y_hat)]
                 for eval_metric in eval_metrics
