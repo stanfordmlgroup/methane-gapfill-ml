@@ -6,7 +6,7 @@ This codebase is a work in progress and will be updated periodically over the ne
 - [X] Model training
 - [X] Model testing
 - [X] Uncertainty estimation, calibration/sharpness, and post-processing calibration
-- [ ] Gap-filling a dataset with a trained model
+- [X] Gap-filling a dataset with a trained model
 
 ## Prerequisites
 1. Clone this repository
@@ -58,7 +58,7 @@ Evaluate a trained model
 python main.py test
 ```
 
-Gapfill using a trained model (not yet implemented)
+Gapfill using a trained model
 ```Shell
 python main.py gapfill
 ```
