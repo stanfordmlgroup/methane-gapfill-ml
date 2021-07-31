@@ -1,7 +1,7 @@
 # methane-gapfill-ml
 Python codebase for [our manuscript](https://authors.elsevier.com/a/1dNxrcFXJZ1gC) "Gap-filling eddy covariance methane fluxes: Comparison of machine learning model predictions and uncertainties at FLUXNET-CH4 wetlands".
 
-This codebase is a work in progress and will be updated periodically over the next month:
+This codebase implements the following features:
 - [X] Data preprocessing
 - [X] Model training
 - [X] Model testing
