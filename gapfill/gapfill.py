@@ -13,7 +13,8 @@ def gapfill(
         models=None,
         predictors=None,
         predictors_paths=None,
-        distribution="laplace"
+        distribution="laplace",
+        **kwargs
 ):
     """
     Gapfill data with trained models.

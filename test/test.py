@@ -49,7 +49,8 @@ def test(
         distribution="laplace",
         eval_metrics=list(metric_dict.keys()),
         uncertainty_eval_metrics=list(uncertainty_metric_dict.keys()),
-        overwrite_results=False
+        overwrite_results=False,
+        **kwargs
 ):
     """
     Evaluate models.
