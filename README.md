@@ -29,9 +29,6 @@ source activate ch4-gap-ml
 ## Usage 
 Prepare data in a CSV and include the following headers:
 - `TIMESTAMP_END`: Format YYYYMMDDHHmm (e.g. 201312060030)
-- `Year`: Four digit integer year (e.g. 2013)
-- `DOY`: Integer day between 1 and 365 (e.g. 217, 340)
-- `Hour`: Decimal hour between 0.0 and 23.5 (e.g. 0.5, 10.0)
 - `FCH4`: Methane flux in nmol m<sup>-2</sup> s<sup>-1</sup>
 All other headers will be treated as input predictors.
 
