@@ -46,7 +46,8 @@ def gapfill(
         distribution (str): Which distribution to use for prediction.
                             Options: ['laplace', 'normal']
         budget_date_ranges_path (str): Dictionary mapping site names to date
-                                       ranges. See gapfill/budget_date_ranges.json
+                                       ranges. See
+                                           gapfill/budget_date_ranges.json
                                        for an example.
 
     Writes gapfilled data to
@@ -56,7 +57,7 @@ def gapfill(
         predicted mean (FCH4_F)
         95% uncertainty (FCH4_uncertainty)
         spread individual predictions (FCH4{1-N})
-    and writes budget data to 
+    and writes budget data to
         data/{SiteID}/gapfilled/{model}_{predictors}_{distribution}_budget.csv
     """
     data_dir = Path("data/")
@@ -87,7 +88,7 @@ def gapfill(
 
         gap_path = site_data_dir / 'gap.csv'
         gap_df = pd.read_csv(gap_path)
-        
+
         model_obj = EnsembleModel(model_dir)
 
         scale_path = model_dir / "scale.json"
@@ -147,7 +148,8 @@ def gapfill(
             gap_df.loc[observed_rows, fch4_column] = (
                 gap_df.loc[observed_rows, 'FCH4']
             )
-        # TODO: Should we keep uncertainty around observed values?
+
+        # Set uncertainties around observed values to 0
         gap_df.loc[observed_rows, f'FCH4_F_UNCERTAINTY'] = 0
 
         outpath = gap_dir / f"{model}_{predictor_subset}_{distribution}.csv"
@@ -216,10 +218,18 @@ def gapfill(
             budget_dict['budget_mean'].append(budget_mean)
             budget_dict['budget_uncertainty'].append(budget_uncertainty)
 
-        # TODO: How did we combine uncertainties per year? average?
+        budget_df = pd.DataFrame(budget_dict)
+
+        # Combine budgets and uncertainties per year with an average
+        mean_budget_dict = {
+            'range_start': site_budget_date_ranges[0][0],
+            'range_end': site_budget_date_ranges[-1][1],
+            'budget_mean': budget_df['budget_mean'].mean(),
+            'budget_uncertainty': budget_df['budget_uncertainty'].mean()
+        }
+        budget_df = budget_df.append(mean_budget_dict, ignore_index=True)
 
         # Write budget data to file
-        budget_df = pd.DataFrame(budget_dict)
         outpath = (
             gap_dir / f"{model}_{predictor_subset}_{distribution}_budget.csv"
         )
