@@ -52,11 +52,16 @@ class EnsembleModel(object):
             feature_importances[var] /= n_models
         return dict(feature_importances)
 
-    def predict(self, X):
-        """Predict the mean of the ensemble model predictions on inputs X"""
+    def predict_individual(self, X):
+        """Return individual model predictions on inputs X"""
         model_preds = []
         for split, model in self.split2model.items():
             model_preds.append(model.predict(X))
+        return np.array(model_preds)
+
+    def predict(self, X):
+        """Predict the mean of the ensemble model predictions on inputs X"""
+        model_preds = self.predict_individual(X)
 
         ensemble_pred = np.mean(model_preds, axis=0)
         return ensemble_pred
@@ -72,9 +77,7 @@ class EnsembleModel(object):
         uncertainty_scale (float): Optional platt scale value to scale
                                    uncertainties.
         """
-        model_preds = []
-        for split, model in self.split2model.items():
-            model_preds.append(model.predict(X))
+        model_preds = self.predict_individual(X)
 
         ensemble_mean = np.mean(model_preds, axis=0)
         ensemble_var = np.var(model_preds, axis=0)

@@ -34,12 +34,12 @@ metric_dict = {
 }
 
 
-def _get_pred_interval(pred_dist):
+def get_pred_interval(pred_dist):
     return np.array([dist.dist.interval(0.95) for dist in pred_dist])
 
 
 def calibration(truth, pred_dist):
-    pred_interval = _get_pred_interval(pred_dist)
+    pred_interval = get_pred_interval(pred_dist)
     frac_of_truth_in_interval = (
         (truth > pred_interval[:, 0]) &
         (truth < pred_interval[:, 1])
@@ -48,13 +48,13 @@ def calibration(truth, pred_dist):
 
 
 def sharpness(truth, pred_dist):
-    pred_interval = _get_pred_interval(pred_dist)
+    pred_interval = get_pred_interval(pred_dist)
     widths = np.diff(pred_interval, axis=1)
     return widths.mean()
 
 
 def normalized_sharpness(truth, pred_dist):
-    pred_interval = _get_pred_interval(pred_dist)
+    pred_interval = get_pred_interval(pred_dist)
     widths = np.diff(pred_interval, axis=1)
     return widths.mean() / np.std(truth)
 

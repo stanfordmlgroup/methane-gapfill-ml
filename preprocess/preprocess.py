@@ -16,7 +16,8 @@ def preprocess(
         n_mc=50,
         eval_frac=0.1,
         n_train=10,
-        seed=1000
+        seed=1000,
+        **kwargs
 ):
     """
     Preprocess the data and generate csvs to be input to the models.

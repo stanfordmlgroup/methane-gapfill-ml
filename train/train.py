@@ -22,7 +22,8 @@ def train(
         inner_cv=5,
         n_iter=20,
         log_metrics=["pr2", "nmae"],
-        overwrite_existing_models=False
+        overwrite_existing_models=False,
+        **kwargs
 ):
     """
     Train models using predictors on sites.

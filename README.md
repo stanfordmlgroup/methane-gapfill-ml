@@ -1,12 +1,12 @@
 # methane-gapfill-ml
 Python codebase for [our manuscript](https://authors.elsevier.com/a/1dNxrcFXJZ1gC) "Gap-filling eddy covariance methane fluxes: Comparison of machine learning model predictions and uncertainties at FLUXNET-CH4 wetlands".
 
-This codebase is a work in progress and will be updated periodically over the next month:
+This codebase implements the following features:
 - [X] Data preprocessing
 - [X] Model training
 - [X] Model testing
 - [X] Uncertainty estimation, calibration/sharpness, and post-processing calibration
-- [ ] Gap-filling a dataset with a trained model
+- [X] Gap-filling a dataset with a trained model
 
 ## Prerequisites
 1. Clone this repository
@@ -29,9 +29,6 @@ source activate ch4-gap-ml
 ## Usage 
 Prepare data in a CSV and include the following headers:
 - `TIMESTAMP_END`: Format YYYYMMDDHHmm (e.g. 201312060030)
-- `Year`: Four digit integer year (e.g. 2013)
-- `DOY`: Integer day between 1 and 365 (e.g. 217, 340)
-- `Hour`: Decimal hour between 0.0 and 23.5 (e.g. 0.5, 10.0)
 - `FCH4`: Methane flux in nmol m<sup>-2</sup> s<sup>-1</sup>
 All other headers will be treated as input predictors.
 
@@ -58,7 +55,7 @@ Evaluate a trained model
 python main.py test
 ```
 
-Gapfill using a trained model (not yet implemented)
+Gapfill using a trained model
 ```Shell
 python main.py gapfill
 ```
@@ -73,7 +70,7 @@ Run `python main.py {preprocess,train,test,gapfill} --help` for descriptions of 
 Example commands using the sample data in the repository:
 ```Shell
 python main.py preprocess --sites NZKop --eval_frac 0.1 --n_train 10
-python main.py train --sites NZKop --models [lasso,rf] --predictors_paths train/predictors.txt
+python main.py train --sites NZKop --models [lasso,rf] --predictors_paths predictors/meteorlogical.txt
 ```
 When specifying multiple values for a parameter, you can either use a comma-separated string or list syntax like in the above command.
 
