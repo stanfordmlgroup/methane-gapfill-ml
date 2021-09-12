@@ -6,8 +6,8 @@ from tqdm import tqdm
 from pathlib import Path
 from collections import defaultdict
 
-from models import get_model_class
-from predictors import (
+from fluxgapfill.models import get_model_class
+from fluxgapfill.predictors import (
     parse_predictors,
     check_predictors_present,
     add_all_predictors
@@ -16,6 +16,7 @@ from predictors import (
 
 def train(
         sites,
+        data_dir,
         models,
         predictors=None,
         predictors_paths=None,
@@ -31,6 +32,7 @@ def train(
     Args:
         sites (list<str>): Comma-separated list of site IDs to train on.
                            Must match the name(s) of the data directories.
+        data_dir (<str>): directory of the data folder containing sites folders. 
         models (list<str>): Comma-separated list of model names to train.
                             Options: ['rf', 'ann', 'lasso', 'xgb']
         predictors (list<str>): Comma-separated list of predictors. Ignored if
@@ -56,7 +58,7 @@ def train(
     general_args = ['sites', 'models', 'predictors', 'predictors_paths',
                     'overwrite_existing_models']
     args = locals()
-    data_dir = Path("data/")
+    data_dir = Path(data_dir)
     if isinstance(sites, str):
         sites = sites.split(",")
     if isinstance(models, str):

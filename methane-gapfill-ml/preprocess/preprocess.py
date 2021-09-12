@@ -3,13 +3,15 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from sklearn.model_selection import train_test_split
+import os
 
-from .load import load_raw_data
+from .load import load_raw_data, load_test_data
 from .artificial import learn_gap_dist, sample_artificial_gaps
 
 
 def preprocess(
         sites,
+        data_dir,
         split_method='artificial',
         dist='CramerVonMises',
         n_grid=10,
@@ -27,6 +29,8 @@ def preprocess(
     Args:
         sites (str): Comma-separated list of site IDs to process.
                      Must match the name(s) of the data directories.
+                     "TEST" loads testing data from Github and no local data required. 
+        project_dir (str): directory of the data folder containing all site folders.  
         split_method (str): How to split the data into training, validation,
                             and test sets.
                             Options: ['artificial', 'random']
@@ -50,14 +54,25 @@ def preprocess(
     Writes all preprocessed data to data/{SiteID}/ for each {SiteID}
     """
     args = locals().copy()
-    data_dir = Path("data/")
+    data_dir = Path(data_dir) # change to input
+
     sites = sites.split(",")
     for site in sites:
         print(f"Preprocessing data for site {site}...")
+
+        # load site data
         site_data_dir = data_dir / site
         site_data_path = site_data_dir / "raw.csv"
+        
+        if site == 'TEST':
+            site_data = load_test_data()
+            site_data_dir = data_dir / site
+            if not os.path.exists(site_data_dir):
+                os.mkdir(site_data_dir)    
+        else:
+            site_data = load_raw_data(site_data_path)
 
-        site_data = load_raw_data(site_data_path)
+        
         gap_indices = site_data.FCH4.isna()
         gap_set = site_data[gap_indices]
         if split_method == 'artificial':
