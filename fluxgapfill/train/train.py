@@ -63,12 +63,12 @@ def train(
         sites = sites.split(",")
     if isinstance(models, str):
         models = models.split(",")
-    for model in models:
-        try:
-            get_model_class(model)
-        except Exception as e:
-            raise ValueError(f"Model {model} not supported.")
-
+        for model in models:
+            try:
+                get_model_class(model)
+            except Exception as e:
+                raise ValueError(f"Model {model} not supported.")
+  
     predictor_subsets = parse_predictors(predictors_paths, predictors)
 
     for site in sites:
@@ -134,17 +134,18 @@ def train(
                         predictor_subset_print, train_sets[0].columns
                     )
 
-                print(f"Training model={model} for site={site} with " +
-                      f"predictors={','.join(predictor_subset_print)}...")
+                print(f"Model training...\n" +
+                      f" - site: {site}\n" +
+                      f" - model: {model}\n" +
+                      f" - predictors: {','.join(predictor_subset_print)}")
 
                 scores = defaultdict(list)
-                for i, (train_set, valid_set) in tqdm(enumerate(zip(train_sets,
-                                                                    valid_sets)),
-                                                      total=len(train_sets)):
-
+                for i, (train_set, valid_set) in enumerate(zip(train_sets,
+                                                                    valid_sets)):
+                    print(f' - Training on {i}/{len(train_sets)}...')
                     model_path = model_dir / f"model{i+1}.pkl"
                     if model_path.exists() and not overwrite_existing_models:
-                        print(f"Loading existing model from {model_path}.")
+                        print(f"  - Loading existing model from {model_path}.")
                         with model_path.open("rb") as f:
                             model_obj = pkl.load(f)
                     else:
@@ -162,4 +163,4 @@ def train(
                 scores_path = model_dir / "training_results.csv"
                 scores_df.to_csv(scores_path, index=False)
 
-        print(f"Done training models for site={site}.")
+            print(f" - Done model training.\n")

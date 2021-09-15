@@ -10,8 +10,8 @@ from .artificial import learn_gap_dist, sample_artificial_gaps
 
 
 def preprocess(
-        sites,
         data_dir,
+        sites,
         split_method='artificial',
         dist='CramerVonMises',
         n_grid=10,
@@ -27,9 +27,12 @@ def preprocess(
     Assumes the site data is stored as a CSV in data/{SiteID}/raw.csv
 
     Args:
-        sites (str): Comma-separated list of site IDs to process.
+        sites (str or list): Comma-separated list of site IDs to process.
                      Must match the name(s) of the data directories.
-                     "TEST" loads testing data from Github and no local data required. 
+                     Examples:
+                        - String input from command line: "siteA, siteB"
+                        - List input from python program
+                        - "TEST" loads testing data from Github and no local data required. 
         project_dir (str): directory of the data folder containing all site folders.  
         split_method (str): How to split the data into training, validation,
                             and test sets.
@@ -56,9 +59,13 @@ def preprocess(
     args = locals().copy()
     data_dir = Path(data_dir) # change to input
 
-    sites = sites.split(",")
+    # for string inputs from command line, change to list
+    if isinstance(sites, str):
+        sites = sites.split(",")
+        
     for site in sites:
-        print(f"Preprocessing data for site {site}...")
+        print(f"Data preprocessing..." +
+              f" - site: {site}")
 
         # load site data
         site_data_dir = data_dir / site
@@ -69,9 +76,9 @@ def preprocess(
             site_data_dir = data_dir / site
             if not os.path.exists(site_data_dir):
                 os.mkdir(site_data_dir)    
+            site_data.to_csv(site_data_dir/'raw.csv', index=False)
         else:
             site_data = load_raw_data(site_data_path)
-
         
         gap_indices = site_data.FCH4.isna()
         gap_set = site_data[gap_indices]
@@ -158,5 +165,5 @@ def preprocess(
         with site_args_path.open('w') as f:
             json.dump(args, f)
 
-        print(f"Done preprocessing data for site {site}.")
-        print(f"Processed data written to {site_data_dir}.")
+        print(f" - Done preprocessing data for site {site}.")
+        print(f" - Processed data written to {site_data_dir}.\n")

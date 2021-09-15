@@ -4,8 +4,8 @@ import pickle as pkl
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import RandomizedSearchCV
 
-from predictors import *
-from metrics import metric_dict
+from fluxgapfill.predictors import *
+from fluxgapfill.metrics import metric_dict
 
 
 class BaseModel(object):
