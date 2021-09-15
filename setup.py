@@ -12,13 +12,13 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = 'methane-gapfill-ml'
+NAME = 'fluxgapfill'
 DESCRIPTION = 'A package for machine learning driven methane gapfilling.'
 URL = 'https://github.com/stanfordmlgroup/methane-gapfill-mlt'
 EMAIL = 'yulunmail@gmail.com'
 AUTHOR = 'Jeremy Irvin & Yulun Zhou'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
