@@ -110,19 +110,7 @@ def test(
         sites = os.listdir(data_dir)
         if "results" in sites:
             sites.remove("results")
-    
-    ##
-    # model_dirs = parse_model_dirs(
-    #     model_dirs=model_dirs,
-    #     sites=sites,
-    #     models=models,
-    #     predictors=predictors,
-    #     predictors_paths=predictors_paths,
-    #     data_dir=data_dir
-    # )
 
-
-    
     splits = ['train', 'valid', 'test']
     if split not in splits:
         raise ValueError(f"Got split={split} but must be one of " +
