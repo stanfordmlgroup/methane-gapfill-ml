@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = 'fluxgapfill'
 DESCRIPTION = 'A package for machine learning driven methane gapfilling.'
-URL = 'https://github.com/stanfordmlgroup/methane-gapfill-mlt'
+URL = 'https://github.com/stanfordmlgroup/methane-gapfill-ml'
 EMAIL = 'yulunmail@gmail.com'
 AUTHOR = 'Jeremy Irvin & Yulun Zhou'
 REQUIRES_PYTHON = '>=3.6.0'
