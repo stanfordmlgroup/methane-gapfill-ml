@@ -88,4 +88,4 @@ In text: "We used the FluxGapfill python toolkit (Version 0.2.0; Irvin, et al, 2
 
 References
 
-Irvin, J., Zhou, Y., McNicol, G., &amp; Liu, J. (2021). FluxGapfill: A Python Interface for Machine-learning Driven Methane Gap-filling. Version 0.2.0. Zenodo. https://doi.org/10.5281/zenodo.5515761. Accessed 2021-09-19.
+Irvin, J., Zhou, Y., Lu, F., Liu, V., Zhou, S., McNicol, G., and Liu, J. (2021). FluxGapfill: A Python Interface for Machine-learning Driven Methane Gap-filling. Version 0.2.0. Zenodo. https://doi.org/10.5281/zenodo.5515761. Accessed 2021-09-19.
