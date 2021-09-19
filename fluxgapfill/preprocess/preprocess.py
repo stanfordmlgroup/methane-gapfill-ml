@@ -27,13 +27,13 @@ def preprocess(
     Assumes the site data is stored as a CSV in data/{SiteID}/raw.csv
 
     Args:
+        data_dir (str): directory of the data folder containing all site folders.  
         sites (str or list): Comma-separated list of site IDs to process.
                      Must match the name(s) of the data directories.
                      Examples:
                         - String input from command line: "siteA, siteB"
                         - List input from python program
-                        - "TEST" loads testing data from Github and no local data required. 
-        project_dir (str): directory of the data folder containing all site folders.  
+                        - "TEST" loads testing data from Github and no local data required.
         split_method (str): How to split the data into training, validation,
                             and test sets.
                             Options: ['artificial', 'random']

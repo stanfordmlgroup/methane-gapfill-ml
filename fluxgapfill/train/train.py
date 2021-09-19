@@ -107,7 +107,7 @@ def train(
                         len(list(model_dir.glob("*.pkl"))) > 0
                         and not overwrite_existing_models
                 ):
-                    with args_path.open() as f:
+                    with args_path.open() as f: ## TODO: double-check model matching detection
                         prev_args = json.load(f)
                     # If args don't match, raise a ValueError and ask that
                     # the user specifies overwrite_existing_models=True.

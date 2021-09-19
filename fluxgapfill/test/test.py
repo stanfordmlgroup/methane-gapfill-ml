@@ -57,13 +57,8 @@ def test(
     Evaluate models.
 
     Args:
-        data_dir (<str>): 
-        
-        # model_dirs (list<str>): Comma-separated list of paths to model
-        #                         directories with checkpoints. These must all
-        #                         be from the same site. sites, models,
-        #                         predictors, and predictors_paths are ignored
-        #                         if this parameter is supplied to the function.
+        data_dir (<str>): path to the project folder containing site data foloders to save
+                          all raw, processed data and results. 
         sites (list<str>): Comma-separated list of site IDs to train on.
                            Must match the name(s) of the data directories.
         models (list<str>): Comma-separated list of model names to train.
@@ -115,19 +110,7 @@ def test(
         sites = os.listdir(data_dir)
         if "results" in sites:
             sites.remove("results")
-    
-    ##
-    # model_dirs = parse_model_dirs(
-    #     model_dirs=model_dirs,
-    #     sites=sites,
-    #     models=models,
-    #     predictors=predictors,
-    #     predictors_paths=predictors_paths,
-    #     data_dir=data_dir
-    # )
 
-
-    
     splits = ['train', 'valid', 'test']
     if split not in splits:
         raise ValueError(f"Got split={split} but must be one of " +

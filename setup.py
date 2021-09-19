@@ -13,10 +13,15 @@ from setuptools import find_packages, setup, Command
 
 # Package meta-data.
 NAME = 'fluxgapfill'
-DESCRIPTION = 'A package for machine learning driven methane gapfilling.'
+<<<<<<< HEAD
+DESCRIPTION = 'A python interface for machine-learning driven methane flux gapfilling.'
 URL = 'https://github.com/stanfordmlgroup/methane-gapfill-mlt'
+=======
+DESCRIPTION = 'A package for machine learning driven methane gapfilling.'
+URL = 'https://github.com/stanfordmlgroup/methane-gapfill-ml'
+>>>>>>> 43597f6592f60e3aaa5980b6c28090279b6f5355
 EMAIL = 'yulunmail@gmail.com'
-AUTHOR = 'Jeremy Irvin & Yulun Zhou'
+AUTHOR = 'Jeremy Irvin, Yulun Zhou, Fred Lu, Vincent Liu, and Sharon Zhou'
 REQUIRES_PYTHON = '>=3.6.0'
 VERSION = '0.2.0'
 

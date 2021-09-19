@@ -27,11 +27,8 @@ def gapfill(
     Gapfill data with trained models.
 
     Args:
-        # model_dirs (list<str>): Comma-separated list of paths to model
-        #                         directories with checkpoints. These must all
-        #                         be from the same site. sites, models,
-        #                         predictors, and predictors_paths are ignored
-        #                         if this parameter is supplied to the function.
+        data_dir (<str>): path to the project folder containing site data foloders to save
+                          all raw, processed data and results. 
         sites (list<str>): Comma-separated list of site IDs to train on.
                            Must match the name(s) of the data directories.
         models (list<str>): Comma-separated list of model names to train.
