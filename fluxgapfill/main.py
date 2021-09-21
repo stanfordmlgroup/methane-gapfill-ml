@@ -1,9 +1,9 @@
 import fire
 
-from preprocess import preprocess
-from train import train
-from test import test
-from gapfill import gapfill
+from .preprocess import preprocess
+from .train import train
+from .test import test
+from .gapfill import gapfill
 
 
 def run_all(**kwargs):

@@ -206,7 +206,7 @@ def learn_gap_dist(
 
     Return a numpy array representing the empirical gap length distribution
     """
-    print("Estimating artificial gap distribution...")
+    print(" - Estimating artificial gap distribution...")
     np.random.seed(seed)
     gap_lengths = get_gap_lengths(flux_data)
 
@@ -248,5 +248,5 @@ def learn_gap_dist(
             best_dist_score = score
             best_pmf = sampling_pmf
 
-    print("Done estimating artificial gap distribution.")
+    print(" - Done estimating artificial gap distribution.")
     return best_pmf

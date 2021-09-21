@@ -6,8 +6,8 @@ from tqdm import tqdm
 from pathlib import Path
 from collections import defaultdict
 
-from models import get_model_class
-from predictors import (
+from fluxgapfill.models import get_model_class
+from fluxgapfill.predictors import (
     parse_predictors,
     check_predictors_present,
     add_all_predictors
@@ -16,6 +16,7 @@ from predictors import (
 
 def train(
         sites,
+        data_dir,
         models,
         predictors=None,
         predictors_paths=None,
@@ -31,6 +32,7 @@ def train(
     Args:
         sites (list<str>): Comma-separated list of site IDs to train on.
                            Must match the name(s) of the data directories.
+        data_dir (<str>): directory of the data folder containing sites folders. 
         models (list<str>): Comma-separated list of model names to train.
                             Options: ['rf', 'ann', 'lasso', 'xgb']
         predictors (list<str>): Comma-separated list of predictors. Ignored if
@@ -56,17 +58,17 @@ def train(
     general_args = ['sites', 'models', 'predictors', 'predictors_paths',
                     'overwrite_existing_models']
     args = locals()
-    data_dir = Path("data/")
+    data_dir = Path(data_dir)
     if isinstance(sites, str):
         sites = sites.split(",")
     if isinstance(models, str):
         models = models.split(",")
-    for model in models:
-        try:
-            get_model_class(model)
-        except Exception as e:
-            raise ValueError(f"Model {model} not supported.")
-
+        for model in models:
+            try:
+                get_model_class(model)
+            except Exception as e:
+                raise ValueError(f"Model {model} not supported.")
+  
     predictor_subsets = parse_predictors(predictors_paths, predictors)
 
     for site in sites:
@@ -105,7 +107,7 @@ def train(
                         len(list(model_dir.glob("*.pkl"))) > 0
                         and not overwrite_existing_models
                 ):
-                    with args_path.open() as f:
+                    with args_path.open() as f: ## TODO: double-check model matching detection
                         prev_args = json.load(f)
                     # If args don't match, raise a ValueError and ask that
                     # the user specifies overwrite_existing_models=True.
@@ -132,17 +134,18 @@ def train(
                         predictor_subset_print, train_sets[0].columns
                     )
 
-                print(f"Training model={model} for site={site} with " +
-                      f"predictors={','.join(predictor_subset_print)}...")
+                print(f"Model training...\n" +
+                      f" - site: {site}\n" +
+                      f" - model: {model}\n" +
+                      f" - predictors: {','.join(predictor_subset_print)}")
 
                 scores = defaultdict(list)
-                for i, (train_set, valid_set) in tqdm(enumerate(zip(train_sets,
-                                                                    valid_sets)),
-                                                      total=len(train_sets)):
-
+                for i, (train_set, valid_set) in enumerate(zip(train_sets,
+                                                                    valid_sets)):
+                    print(f' - Training on {i}/{len(train_sets)}...')
                     model_path = model_dir / f"model{i+1}.pkl"
                     if model_path.exists() and not overwrite_existing_models:
-                        print(f"Loading existing model from {model_path}.")
+                        print(f"  - Loading existing model from {model_path}.")
                         with model_path.open("rb") as f:
                             model_obj = pkl.load(f)
                     else:
@@ -160,4 +163,4 @@ def train(
                 scores_path = model_dir / "training_results.csv"
                 scores_df.to_csv(scores_path, index=False)
 
-        print(f"Done training models for site={site}.")
+            print(f" - Done model training.\n")
