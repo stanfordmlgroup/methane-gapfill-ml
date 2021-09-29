@@ -49,6 +49,8 @@ class ANN(BaseModel):
             "tol": [1e-7],
             "activation": ["tanh", "relu"]
         }
+        self.scaler = None
+
 
     @property
     def feature_importances(self):
