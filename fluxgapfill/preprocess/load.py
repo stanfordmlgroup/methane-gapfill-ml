@@ -1,12 +1,12 @@
 import pandas as pd
 
 
-def load_raw_data(site_data_path):
+def load_raw_data(site_data_path, na_values=-9999):
     print(' - Loading site data')
     if not site_data_path.exists():
         raise ValueError(f"Expected data at {site_data_path} but " +
                          "the data was not found")
-    site_data = pd.read_csv(site_data_path)
+    site_data = pd.read_csv(site_data_path, na_values=na_values)
     
     expected_columns = [
         "TIMESTAMP_END",
