@@ -4,7 +4,7 @@ from collections import defaultdict
 from ngboost.distns.normal import Normal
 from ngboost.distns.laplace import Laplace
 
-from metrics import metric_dict
+from fluxgapfill.metrics import metric_dict
 
 
 class EnsembleModel(object):
