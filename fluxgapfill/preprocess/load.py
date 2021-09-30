@@ -17,11 +17,14 @@ def load_raw_data(site_data_path, na_values=-9999):
             raise ValueError(f"CSV is missing column {expected_column}.")
 
     try:
-        pd.to_datetime(site_data["TIMESTAMP_END"], format='%Y%m%d%H%M')
+        datetimes = pd.to_datetime(site_data["TIMESTAMP_END"], format='%Y%m%d%H%M')
     except:
         raise ValueError("TIMESTAMP_END needs to be formatted as " +
-                         "`YYYYMMDDHHmm`")
-
+                         "`YYYYMMDDHHmm`. Also check if any 00 exists in %d")
+    
+    if "year" not in site_data.columns: # required by budget estimation
+        site_data["year"] = [dt.year for dt in datetimes]
+        
     return site_data
 
 
