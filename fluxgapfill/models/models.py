@@ -49,7 +49,7 @@ class ANN(BaseModel):
             "tol": [1e-7],
             "activation": ["tanh", "relu"]
         }
-        self.scaler = None
+        self.scaler = StandardScaler()
 
 
     @property
