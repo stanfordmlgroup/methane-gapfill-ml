@@ -1,12 +1,12 @@
 import pandas as pd
 
 
-def load_raw_data(site_data_path):
+def load_raw_data(site_data_path, na_values=-9999):
     print(' - Loading site data')
     if not site_data_path.exists():
         raise ValueError(f"Expected data at {site_data_path} but " +
                          "the data was not found")
-    site_data = pd.read_csv(site_data_path)
+    site_data = pd.read_csv(site_data_path, na_values=na_values)
     
     expected_columns = [
         "TIMESTAMP_END",
@@ -17,11 +17,14 @@ def load_raw_data(site_data_path):
             raise ValueError(f"CSV is missing column {expected_column}.")
 
     try:
-        pd.to_datetime(site_data["TIMESTAMP_END"], format='%Y%m%d%H%M')
+        datetimes = pd.to_datetime(site_data["TIMESTAMP_END"], format='%Y%m%d%H%M')
     except:
         raise ValueError("TIMESTAMP_END needs to be formatted as " +
-                         "`YYYYMMDDHHmm`")
-
+                         "`YYYYMMDDHHmm`. Also check if any 00 exists in %d")
+    
+    if "year" not in site_data.columns: # required by budget estimation
+        site_data["year"] = [dt.year for dt in datetimes]
+        
     return site_data
 
 

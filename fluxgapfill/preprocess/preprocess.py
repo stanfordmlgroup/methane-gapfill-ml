@@ -12,6 +12,7 @@ from .artificial import learn_gap_dist, sample_artificial_gaps
 def preprocess(
         data_dir,
         sites,
+        na_values=-9999,
         split_method='artificial',
         dist='CramerVonMises',
         n_grid=10,
@@ -34,6 +35,11 @@ def preprocess(
                         - String input from command line: "siteA, siteB"
                         - List input from python program
                         - "TEST" loads testing data from Github and no local data required.
+        na_values (int): Additional strings to recognize as NA/NaN. If dict passed, 
+                    specific per-column NA values. By default the following values are 
+                    interpreted as NaN: ‘’, ‘#N/A’, ‘#N/A N/A’, ‘#NA’, ‘-1.#IND’, 
+                    ‘-1.#QNAN’, ‘-NaN’, ‘-nan’, ‘1.#IND’, ‘1.#QNAN’, ‘<NA>’, ‘N/A’, 
+                    ‘NA’, ‘NULL’, ‘NaN’, ‘n/a’, ‘nan’, ‘null’.
         split_method (str): How to split the data into training, validation,
                             and test sets.
                             Options: ['artificial', 'random']
@@ -78,7 +84,7 @@ def preprocess(
                 os.mkdir(site_data_dir)    
             site_data.to_csv(site_data_dir/'raw.csv', index=False)
         else:
-            site_data = load_raw_data(site_data_path)
+            site_data = load_raw_data(site_data_path, na_values)
         
         gap_indices = site_data.FCH4.isna()
         gap_set = site_data[gap_indices]
