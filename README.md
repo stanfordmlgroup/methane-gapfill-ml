@@ -11,7 +11,7 @@ This codebase implements the following features:
 
 
 ## Jupyter Notebook Tutorial
-https://github.com/stanfordmlgroup/methane-gapfill-ml/blob/pip-package/fluxgapfill_tutorial.ipynb
+https://github.com/stanfordmlgroup/methane-gapfill-ml/blob/master/fluxgapfill_tutorial.ipynb
 
 
 ## Installation
