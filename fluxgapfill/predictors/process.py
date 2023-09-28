@@ -32,7 +32,7 @@ def process_wind_direction_predictor(X):
 def get_temporal_predictors(timestamp):
     # add sinusoidal functions
     timestamp = pd.to_datetime(timestamp, format='%Y%m%d%H%M').rename('delta')
-    doy = timestamp.dt.day
+    doy = timestamp.dt.dayofyear
     sin = np.sin(2 * np.pi * (doy - 1) / 365).rename('yearly_sin')
     cos = np.cos(2 * np.pi * (doy - 1) / 365).rename('yearly_cos')
 
