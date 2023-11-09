@@ -16,7 +16,7 @@ https://github.com/stanfordmlgroup/methane-gapfill-ml/blob/master/fluxgapfill_tu
 
 ## Installation
 ```Shell
-pip install gapfluxfill
+pip install fluxgapfill
 ```
 
 
