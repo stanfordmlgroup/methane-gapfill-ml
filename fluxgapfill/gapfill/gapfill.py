@@ -22,6 +22,7 @@ def gapfill(
         predictors_paths=None,
         distribution="laplace",
         budget_date_ranges_path=None,
+        data_source='ONEFlux',
         **kwargs
 ):
     """
@@ -110,7 +111,7 @@ def gapfill(
                                                       model, 
                                                       predictor_subset, 
                                                       distribution, 
-                                                      site_dir)
+                                                      site_dir,data_source)
                 out_fn = site_gap_dir / f"{model}_{predictor_subset}_{distribution}.csv"
                 print(f" - Writing gapfilled data to {out_fn}\n")
                 gap_df.to_csv(out_fn, index=False)
@@ -134,7 +135,7 @@ def gapfill(
                 budget_df.to_csv(out_fn, index=False)
 
 
-def gapfill_site_model_predictor(site, model, predictor, distribution, site_dir):
+def gapfill_site_model_predictor(site, model, predictor, distribution, site_dir,data_source):
         
     model_dir = site_dir/"models"/model/predictor
     Model = EnsembleModel(model_dir)
@@ -177,7 +178,11 @@ def gapfill_site_model_predictor(site, model, predictor, distribution, site_dir)
 
     # Merge with original data
     raw_fn = site_dir / 'raw.csv'
-    raw_df = pd.read_csv(raw_fn)
+    if data_source == 'AmeriFlux-Base':
+        skiprows = 2
+    else:
+        skiprows = 0
+    raw_df = pd.read_csv(raw_fn, skiprows=skiprows)
 
     # Drop existing columns from the raw df
     existing_fch4_columns = [
