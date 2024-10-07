@@ -1,5 +1,6 @@
 import os
 import json
+import dill as pickle
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -77,8 +78,10 @@ def gapfill(
         predictor_subsets = None
 
     if budget_date_ranges_path is not None:
-        with Path(budget_date_ranges_path).open() as f:
-            budget_date_ranges = json.load(f)
+        # with Path(budget_date_ranges_path).open() as f:
+        #     budget_date_ranges = json.load(f)
+        with open(str(budget_date_ranges_path), 'rb') as pickle_file:
+            budget_date_ranges = pickle.load(pickle_file)
     else:
         budget_date_ranges = {}
     
@@ -144,9 +147,10 @@ def gapfill_site_model_predictor(site, model, predictor, distribution, site_dir)
             f"{distribution} to compute an uncertainty scale before " +
             "gapfilling."
         )
-    with scale_fn.open() as f:
-        uncertainty_scale = json.load(f)
-
+    # with scale_fn.open() as f:
+    #     uncertainty_scale = json.load(f)
+    with open(str(scale_fn), 'rb') as pickle_file:
+        uncertainty_scale = pickle.load(pickle_file)
     y_hat_individual = Model.predict_individual(gap_df)
     y_hat_mean = np.mean(y_hat_individual, axis=0)
     y_hat_spread = (

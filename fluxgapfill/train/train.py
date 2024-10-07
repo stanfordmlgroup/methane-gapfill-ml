@@ -2,6 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 import pickle as pkl
+import dill as pickle
 from tqdm import tqdm
 from pathlib import Path
 from collections import defaultdict
@@ -107,8 +108,10 @@ def train(
                         len(list(model_dir.glob("*.pkl"))) > 0
                         and not overwrite_existing_models
                 ):
-                    with args_path.open() as f: ## TODO: double-check model matching detection
-                        prev_args = json.load(f)
+                    # with args_path.open() as f: ## TODO: double-check model matching detection
+                    #     prev_args = json.load(f)
+                    with open(str(args_path), 'rb') as pickle_file:
+                        prev_args = pickle.load(pickle_file)
                     # If args don't match, raise a ValueError and ask that
                     # the user specifies overwrite_existing_models=True.
                     for key, value in args.items():
@@ -125,8 +128,10 @@ def train(
                     # Either model doesn't exist or
                     # overwrite_existing_models=True
                     # Write args to file
-                    with args_path.open('w') as f:
-                        json.dump(args, f)
+                    # with args_path.open('w') as f:
+                    #     json.dump(args, f)
+                    with open(str(args_path), 'wb') as pickle_file:
+                        pickle.dump(args, pickle_file)
 
                 predictor_subset_print = predictor_subset
                 if 'all' in predictor_subset_print:

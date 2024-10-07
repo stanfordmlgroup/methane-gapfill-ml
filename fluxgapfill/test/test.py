@@ -1,6 +1,7 @@
 import os
 import json
-import pickle
+import pickle as pkl
+import dill as pickle
 import pandas as pd
 from pathlib import Path
 from collections import defaultdict
@@ -172,8 +173,10 @@ def test(
                     pred_df.to_csv(site_model_predictor_dir / f"{split}_predictions.csv", index=False)
                     
                     scale_path = site_model_predictor_dir / "scale.json"
-                    with scale_path.open('w') as f:
-                        json.dump(uncertainty_scale, f)
+                    # with scale_path.open('w') as f:
+                    #     json.dump(uncertainty_scale, f)
+                    with open(str(scale_path), 'wb') as pickle_file:
+                        pickle.dump(uncertainty_scale, pickle_file)
         
                     scores = {
                         eval_metric: [metric_dict[eval_metric](y, y_hat)]
@@ -275,5 +278,7 @@ def test(
 
     # Save args to eval_scores_dir
     eval_args_fn = eval_scores_dir / f"{split}_args.json"
-    with open(eval_args_fn, 'w') as f:
-        json.dump(args, f)
+    # with open(eval_args_fn, 'w') as f:
+    #     json.dump(args, f)
+    with open(str(eval_args_fn), 'wb') as pickle_file:
+        pickle.dump(args, pickle_file)
