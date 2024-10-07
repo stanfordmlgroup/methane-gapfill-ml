@@ -20,7 +20,7 @@ def preprocess(
         eval_frac=0.1,
         n_train=10,
         seed=1000,
-        data_source='AmeriFlux-Base',
+        data_source='ONEFlux',
         **kwargs
 ):
     """
