@@ -20,6 +20,7 @@ def preprocess(
         eval_frac=0.1,
         n_train=10,
         seed=1000,
+        data_source='AmeriFlux-Base',
         **kwargs
 ):
     """
@@ -84,7 +85,7 @@ def preprocess(
                 os.mkdir(site_data_dir)    
             site_data.to_csv(site_data_dir/'raw.csv', index=False)
         else:
-            site_data = load_raw_data(site_data_path, na_values)
+            site_data = load_raw_data(site_data_path, na_values,data_source)
         
         gap_indices = site_data.FCH4.isna()
         gap_set = site_data[gap_indices]

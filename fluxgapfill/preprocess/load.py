@@ -1,12 +1,16 @@
 import pandas as pd
 
 
-def load_raw_data(site_data_path, na_values=-9999):
+def load_raw_data(site_data_path, na_values=-9999,data_source='ONEFlux'):
     print(' - Loading site data')
     if not site_data_path.exists():
         raise ValueError(f"Expected data at {site_data_path} but " +
                          "the data was not found")
-    site_data = pd.read_csv(site_data_path, na_values=na_values)
+    if data_source=='AmeriFlux-Base':
+        skiprows = 2
+    else:
+        skiprows = 0
+    site_data = pd.read_csv(site_data_path, na_values=na_values, skiprows=skiprows)
     
     expected_columns = [
         "TIMESTAMP_END",
