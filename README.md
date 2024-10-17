@@ -9,6 +9,9 @@ This codebase implements the following features:
 - [X] Gap-filling a dataset with a trained model
 
 
+## Word document-Tutorial from data download (e.g., from AmeriFlux) to methane flux gap-filling（Recommend starting from this tutorial）  
+https://github.com/stanfordmlgroup/methane-gapfill-ml/blob/FL/Tutorial_from_data_download_to_gap-filling.docx  
+
 
 ## Jupyter Notebook Tutorial
 https://github.com/stanfordmlgroup/methane-gapfill-ml/blob/master/fluxgapfill_tutorial.ipynb
