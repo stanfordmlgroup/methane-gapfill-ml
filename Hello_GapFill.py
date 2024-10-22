@@ -21,8 +21,8 @@ def hello_gapfill():
     # The parameter of "split_method" specify how you split the data.
     # Here we use 'random' method which randomly splits the data
     # For the 'random' method, 'n_mc' parameter is not used and
-    # 'n_train' represents the number of times the data is randomly split.
-    # For ten-fold cross-validation,the n_train=10
+    # 'n_train' represents the number of times the data is randomly split into 
+    # training, validation, and test dataset.
     preprocess(sites=sites,
                na_values=-9999,
                data_source=data_source,
